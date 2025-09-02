@@ -4,66 +4,67 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, ArrowRight, MapPin, Clock, Users, Euro, Car, Phone, Mail, Info, Shield, Calendar, FileText } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const TrialDetail = () => {
   const { id } = useParams();
+  const [trial, setTrial] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Mock trial data - in real app this would come from an API
-  const trial = {
-    id: 1,
-    title: "Advanced Eczema Treatment Study",
-    hospital: "Mater Hospital",
-    location: "North Dublin",
-    address: "Eccles Street, Dublin 7, D07 R2WY",
-    distance: "2.3 km from you",
-    duration: "12 weeks",
-    description: "This innovative clinical trial is testing a new topical immunomodulator for moderate to severe atopic dermatitis. The treatment has shown promising results in Phase II trials, with significant improvements in skin clearance and quality of life measures.",
-    eligibility: {
-      age: "18-65 years old",
-      condition: "Moderate to severe atopic dermatitis",
-      requirements: [
-        "Diagnosed with eczema for at least 1 year",
-        "Current flare affecting at least 10% of body surface",
-        "No biologic treatments in the last 6 months",
-        "Willing to discontinue current topical treatments during washout period",
-        "Available for all scheduled visits"
-      ],
-      exclusions: [
-        "Pregnant or breastfeeding",
-        "Active skin infections",
-        "Immunocompromised conditions",
-        "Participation in other trials within 30 days"
-      ]
-    },
-    compensation: "€300 total compensation",
-    benefits: [
-      "Free study medication and supplies",
-      "Comprehensive dermatological assessments",
-      "24/7 medical support hotline",
-      "Travel expense reimbursement",
-      "Regular monitoring by specialist team",
-      "Early access to innovative treatment"
-    ],
-    schedule: [
-      { visit: "Screening", week: "Week -2", duration: "2 hours", description: "Medical history, physical exam, eligibility confirmation" },
-      { visit: "Baseline", week: "Week 0", duration: "1.5 hours", description: "Initial assessments, treatment initiation" },
-      { visit: "Follow-up 1", week: "Week 2", duration: "1 hour", description: "Safety check, medication review" },
-      { visit: "Follow-up 2", week: "Week 4", duration: "1 hour", description: "Efficacy assessment, side effect monitoring" },
-      { visit: "Follow-up 3", week: "Week 8", duration: "1 hour", description: "Progress evaluation, medication adjustment if needed" },
-      { visit: "Final Visit", week: "Week 12", duration: "2 hours", description: "Final assessments, study completion" }
-    ],
-    contact: {
-      coordinator: "Dr. Sarah O'Connor",
-      phone: "+353 1 803 2000",
-      email: "trials@mater.ie",
-      hours: "Monday-Friday, 9:00-17:00"
-    },
-    ethics: {
-      approved: "Irish Health Research Ethics Committee",
-      protocol: "IHREC Protocol #2024-EZ-001",
-      sponsor: "Trinity College Dublin"
-    }
-  };
+  useEffect(() => {
+    const fetchTrial = async () => {
+      if (!id) return;
+      
+      try {
+        const { data, error } = await (supabase as any)
+          .from('test')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching trial:', error);
+          return;
+        }
+
+        setTrial(data);
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTrial();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-trust py-8">
+        <div className="container max-w-4xl">
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Loading trial details...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!trial) {
+    return (
+      <div className="min-h-screen bg-gradient-trust py-8">
+        <div className="container max-w-4xl">
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Trial not found.</p>
+            <Link to="/trials" className="text-primary hover:underline">
+              Back to all trials
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-trust py-8">
@@ -89,12 +90,12 @@ const TrialDetail = () => {
                 </Badge>
               </div>
               
-              <h1 className="text-3xl font-bold text-foreground mb-2">{trial.title}</h1>
+              <h1 className="text-3xl font-bold text-foreground mb-2">{trial.id}</h1>
               <div className="flex items-center text-muted-foreground mb-4">
                 <MapPin className="h-4 w-4 mr-2" />
-                {trial.hospital} • {trial.location} • {trial.distance}
+                {trial.school}
               </div>
-              <p className="text-muted-foreground">{trial.description}</p>
+              <p className="text-muted-foreground">Clinical trial entry for {trial.id} at {trial.school}</p>
             </div>
             
             <div className="lg:w-80">
@@ -121,15 +122,15 @@ const TrialDetail = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center space-x-2">
                     <Clock className="h-4 w-4 text-primary" />
-                    <span className="text-sm">Duration: {trial.duration}</span>
+                    <span className="text-sm">Trial ID: {trial.id}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Users className="h-4 w-4 text-primary" />
-                    <span className="text-sm">Phase: III Clinical Trial</span>
+                    <span className="text-sm">Phase: Clinical Trial</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <MapPin className="h-4 w-4 text-primary" />
-                    <span className="text-sm">{trial.address}</span>
+                    <span className="text-sm">{trial.school}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Shield className="h-4 w-4 text-primary" />
@@ -139,37 +140,24 @@ const TrialDetail = () => {
               </CardContent>
             </Card>
 
-            {/* Eligibility */}
+            {/* Trial Information */}
             <Card variant="healthcare">
               <CardHeader>
-                <CardTitle>Eligibility Requirements</CardTitle>
-                <CardDescription>Check if you meet the criteria for this study</CardDescription>
+                <CardTitle>Trial Information</CardTitle>
+                <CardDescription>Details about this clinical trial</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h4 className="font-medium text-foreground mb-2">You must have:</h4>
-                  <ul className="space-y-2">
-                    {trial.eligibility.requirements.map((req, index) => (
-                      <li key={index} className="flex items-start space-x-2 text-sm">
-                        <div className="w-1.5 h-1.5 bg-success rounded-full mt-2 flex-shrink-0"></div>
-                        <span>{req}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <h4 className="font-medium text-foreground mb-2">Participant Name:</h4>
+                  <p className="text-sm">{trial.id}</p>
                 </div>
-
-                <Separator />
-
                 <div>
-                  <h4 className="font-medium text-foreground mb-2">You cannot have:</h4>
-                  <ul className="space-y-2">
-                    {trial.eligibility.exclusions.map((exc, index) => (
-                      <li key={index} className="flex items-start space-x-2 text-sm">
-                        <div className="w-1.5 h-1.5 bg-destructive rounded-full mt-2 flex-shrink-0"></div>
-                        <span>{exc}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <h4 className="font-medium text-foreground mb-2">Associated Institution:</h4>
+                  <p className="text-sm">{trial.school}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-foreground mb-2">Trial Status:</h4>
+                  <p className="text-sm">Active</p>
                 </div>
               </CardContent>
             </Card>
@@ -183,7 +171,7 @@ const TrialDetail = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Info className="h-5 w-5 mr-2" />
-                  Why This Trial Matches You
+                  Trial Details
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -191,30 +179,30 @@ const TrialDetail = () => {
                   <div className="flex items-start space-x-3">
                     <div className="w-2 h-2 bg-success rounded-full mt-2"></div>
                     <p className="text-sm text-muted-foreground">
-                      <strong>Age match:</strong> You're 25 years old, within the 18-65 age range
+                      <strong>Participant:</strong> {trial.id}
                     </p>
                   </div>
                   <div className="flex items-start space-x-3">
                     <div className="w-2 h-2 bg-success rounded-full mt-2"></div>
                     <p className="text-sm text-muted-foreground">
-                      <strong>Condition match:</strong> Study targets moderate to severe eczema
+                      <strong>Institution:</strong> {trial.school}
                     </p>
                   </div>
                   <div className="flex items-start space-x-3">
                     <div className="w-2 h-2 bg-success rounded-full mt-2"></div>
                     <p className="text-sm text-muted-foreground">
-                      <strong>Location preference:</strong> Mater Hospital is in your preferred North Dublin area
+                      <strong>Status:</strong> Active trial entry
                     </p>
                   </div>
                   <div className="flex items-start space-x-3">
                     <div className="w-2 h-2 bg-success rounded-full mt-2"></div>
                     <p className="text-sm text-muted-foreground">
-                      <strong>Compensation:</strong> Includes travel support which you indicated was important
+                      <strong>Type:</strong> Clinical research study
                     </p>
                   </div>
                 </div>
                 <Button variant="default" className="w-full">
-                  Check Eligibility
+                  Contact for Details
                 </Button>
               </CardContent>
             </Card>
