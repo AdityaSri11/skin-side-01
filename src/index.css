@@ -1,0 +1,164 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* SkinSide Design System - Healthcare focused with warm, trustworthy colors */
+
+@layer base {
+  :root {
+    /* Core healthcare color palette */
+    --background: 210 30% 98%;
+    --foreground: 215 25% 15%;
+
+    /* Healthcare trust colors - soft blues */
+    --primary: 205 85% 45%;
+    --primary-foreground: 0 0% 98%;
+    --primary-light: 205 90% 85%;
+    --primary-glow: 205 85% 65%;
+
+    /* Warm skin tone inspired colors */
+    --secondary: 25 35% 92%;
+    --secondary-foreground: 25 25% 25%;
+    --skin-tone: 25 40% 88%;
+    --skin-warm: 20 35% 85%;
+
+    /* Healing green accents */
+    --accent: 140 35% 85%;
+    --accent-foreground: 140 45% 20%;
+    --healing-green: 140 40% 75%;
+    --success: 140 55% 45%;
+
+    /* HSE/NHS inspired blues */
+    --healthcare-blue: 210 100% 36%;
+    --healthcare-light: 210 85% 92%;
+
+    /* Card and surface colors */
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+    --card-border: 210 25% 90%;
+
+    /* Interactive elements */
+    --muted: 210 30% 95%;
+    --muted-foreground: 215 15% 55%;
+    --border: 210 25% 88%;
+    --input: 210 25% 94%;
+    --ring: 205 85% 45%;
+
+    /* Status colors */
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --warning: 35 85% 55%;
+    --warning-foreground: 35 25% 15%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(205 85% 45%), hsl(205 85% 65%));
+    --gradient-healing: linear-gradient(135deg, hsl(140 40% 75%), hsl(25 35% 85%));
+    --gradient-trust: linear-gradient(180deg, hsl(210 85% 98%), hsl(205 90% 94%));
+
+    /* Shadows */
+    --shadow-soft: 0 4px 20px -4px hsl(205 85% 45% / 0.15);
+    --shadow-card: 0 2px 15px -3px hsl(210 25% 25% / 0.08);
+    --shadow-button: 0 2px 8px -2px hsl(205 85% 45% / 0.25);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  /* Healthcare UI Components */
+  .healthcare-card {
+    @apply bg-card border border-card-border rounded-2xl p-6;
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-smooth);
+  }
+
+  .healthcare-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-healing {
+    background: var(--gradient-healing);
+  }
+
+  .gradient-trust {
+    background: var(--gradient-trust);
+  }
+
+  .dublin-skyline {
+    background: linear-gradient(180deg, transparent 60%, hsl(var(--primary-light)) 60%);
+  }
+}
