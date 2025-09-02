@@ -4,83 +4,35 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, MapPin, Clock, Users } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const AllTrials = () => {
-  // Mock trial data - replace with real data later
-  const trials = [
-    {
-      id: 1,
-      title: "Advanced Psoriasis Treatment Study",
-      description: "Evaluating a new topical treatment for moderate to severe plaque psoriasis",
-      location: "Dublin City Centre",
-      compensation: "€500",
-      duration: "12 weeks",
-      participants: "24/30",
-      status: "Recruiting",
-      condition: "Psoriasis",
-      type: "Phase III Clinical Trial"
-    },
-    {
-      id: 2,
-      title: "Eczema Therapy Research",
-      description: "Testing innovative treatment approaches for atopic dermatitis patients",
-      location: "Trinity College Dublin",
-      compensation: "€350",
-      duration: "8 weeks",
-      participants: "18/25",
-      status: "Recruiting",
-      condition: "Eczema",
-      type: "Phase II Clinical Trial"
-    },
-    {
-      id: 3,
-      title: "Melanoma Prevention Study",
-      description: "Long-term study on skin cancer prevention strategies and early detection",
-      location: "St. James's Hospital",
-      compensation: "€750",
-      duration: "24 weeks",
-      participants: "45/50",
-      status: "Recruiting",
-      condition: "Skin Cancer",
-      type: "Observational Study"
-    },
-    {
-      id: 4,
-      title: "Acne Treatment Breakthrough",
-      description: "Revolutionary approach to treating severe acne in young adults",
-      location: "UCD Hospital",
-      compensation: "€400",
-      duration: "16 weeks",
-      participants: "12/20",
-      status: "Recruiting",
-      condition: "Acne",
-      type: "Phase II Clinical Trial"
-    },
-    {
-      id: 5,
-      title: "Rosacea Management Trial",
-      description: "Comprehensive study on managing rosacea symptoms and triggers",
-      location: "Mater Hospital",
-      compensation: "€300",
-      duration: "10 weeks",
-      participants: "30/35",
-      status: "Recruiting",
-      condition: "Rosacea",
-      type: "Phase III Clinical Trial"
-    },
-    {
-      id: 6,
-      title: "Wound Healing Research",
-      description: "Advanced wound healing techniques for chronic skin conditions",
-      location: "Beaumont Hospital",
-      compensation: "€600",
-      duration: "20 weeks",
-      participants: "8/15",
-      status: "Starting Soon",
-      condition: "Wound Healing",
-      type: "Phase I Clinical Trial"
-    }
-  ];
+  const [trials, setTrials] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTrials = async () => {
+      try {
+        const { data, error } = await (supabase as any)
+          .from('test')
+          .select('*');
+
+        if (error) {
+          console.error('Error fetching trials:', error);
+          return;
+        }
+
+        setTrials(data || []);
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTrials();
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -127,57 +79,43 @@ const AllTrials = () => {
         </div>
 
         {/* Trials Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {trials.map((trial) => (
-            <Card key={trial.id} variant="healthcare" className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex justify-between items-start mb-2">
-                  <Badge variant="secondary" className="text-xs">
-                    {trial.type}
-                  </Badge>
-                  <Badge className={getStatusColor(trial.status)}>
-                    {trial.status}
-                  </Badge>
-                </div>
-                <CardTitle className="text-lg leading-tight">
-                  {trial.title}
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  {trial.description}
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    {trial.location}
+        {loading ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Loading trials...</p>
+          </div>
+        ) : trials.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No trials found.</p>
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {trials.map((trial) => (
+              <Card key={trial.id} variant="healthcare" className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="text-lg leading-tight">
+                    {trial.id}
+                  </CardTitle>
+                  <CardDescription className="text-sm">
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      {trial.school}
+                    </div>
+                  </CardDescription>
+                </CardHeader>
+                
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center pt-2 border-t">
+                    <Link to={`/trial/${trial.id}`}>
+                      <Button variant="outline" size="sm">
+                        Learn More
+                      </Button>
+                    </Link>
                   </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4 mr-2" />
-                    {trial.duration}
-                  </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Users className="h-4 w-4 mr-2" />
-                    {trial.participants} participants
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center pt-2 border-t">
-                  <div>
-                    <span className="text-sm text-muted-foreground">Compensation</span>
-                    <p className="font-semibold text-healthcare">{trial.compensation}</p>
-                  </div>
-                  <Link to={`/trial/${trial.id}`}>
-                    <Button variant="outline" size="sm">
-                      Learn More
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {/* Call to Action */}
         <div className="mt-12 text-center">
