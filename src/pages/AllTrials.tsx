@@ -89,22 +89,22 @@ const AllTrials = () => {
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {trials.map((trial) => (
-              <Card key={trial.id} variant="healthcare" className="hover:shadow-lg transition-shadow">
+            {trials.map((trial, index) => (
+              <Card key={trial.id || index} variant="healthcare" className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <CardTitle className="text-lg leading-tight">
                     {trial.id}
                   </CardTitle>
                   <CardDescription className="text-sm">
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      {trial.school}
-                    </div>
+                    School: {trial.school}
                   </CardDescription>
                 </CardHeader>
                 
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-center pt-2 border-t">
+                    <div className="text-sm text-muted-foreground">
+                      Trial Entry
+                    </div>
                     <Link to={`/trial/${trial.id}`}>
                       <Button variant="outline" size="sm">
                         Learn More
