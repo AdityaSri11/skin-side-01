@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, MapPin, Clock, Users, Euro, Car, Phone, Mail, In
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { generateTrialTitle } from "@/lib/utils";
 
 const TrialDetail = () => {
   const { id } = useParams();
@@ -90,7 +91,7 @@ const TrialDetail = () => {
                 </Badge>
               </div>
               
-              <h1 className="text-3xl font-bold text-foreground mb-2">{trial.Description || trial.Number}</h1>
+              <h1 className="text-3xl font-bold text-foreground mb-2">{generateTrialTitle(trial.Description, trial.Number)}</h1>
               <div className="flex items-center text-muted-foreground mb-4">
                 <MapPin className="h-4 w-4 mr-2" />
                 {trial.Sponsor}

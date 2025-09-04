@@ -6,6 +6,7 @@ import { Search, MapPin, Clock, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { generateTrialTitle } from "@/lib/utils";
 
 const AllTrials = () => {
   const [trials, setTrials] = useState<any[]>([]);
@@ -93,7 +94,7 @@ const AllTrials = () => {
               <Card key={trial.id || index} variant="healthcare" className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <CardTitle className="text-lg leading-tight">
-                    {trial.Description || trial.Number}
+                    {generateTrialTitle(trial.Description, trial.Number)}
                   </CardTitle>
                   <CardDescription className="text-sm">
                     Status: {trial.Status} | Phase: {trial.Phase}
