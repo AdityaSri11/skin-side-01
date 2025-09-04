@@ -1,4 +1,5 @@
 import { Heart, Shield, Phone } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const Footer = () => {
   return (
@@ -7,9 +8,11 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg gradient-primary">
-                <Heart className="h-5 w-5 text-white" />
-              </div>
+              <img
+                src={logo}
+                alt="SkinSide Logo"
+                className="w-8 h-8 rounded-lg object-cover"
+              />
               <span className="font-bold text-foreground">SkinSide</span>
             </div>
             <p className="text-sm text-muted-foreground">
