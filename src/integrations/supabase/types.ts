@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      derm: {
+        Row: {
+          Age_group: string | null
+          Conditions: string | null
+          Description: string | null
+          Endpoint: string | null
+          Gender: string | null
+          Number: string
+          Phase: string | null
+          Product: string | null
+          Sponsor: string
+          Status: string | null
+        }
+        Insert: {
+          Age_group?: string | null
+          Conditions?: string | null
+          Description?: string | null
+          Endpoint?: string | null
+          Gender?: string | null
+          Number: string
+          Phase?: string | null
+          Product?: string | null
+          Sponsor: string
+          Status?: string | null
+        }
+        Update: {
+          Age_group?: string | null
+          Conditions?: string | null
+          Description?: string | null
+          Endpoint?: string | null
+          Gender?: string | null
+          Number?: string
+          Phase?: string | null
+          Product?: string | null
+          Sponsor?: string
+          Status?: string | null
+        }
+        Relationships: []
+      }
       test: {
         Row: {
           id: string

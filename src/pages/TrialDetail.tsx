@@ -18,10 +18,10 @@ const TrialDetail = () => {
       
       try {
         const { data, error } = await (supabase as any)
-          .from('test')
+          .from('derm')
           .select('*')
-          .eq('id', id)
-          .single();
+          .eq('Number', id)
+          .maybeSingle();
 
         if (error) {
           console.error('Error fetching trial:', error);
@@ -90,12 +90,12 @@ const TrialDetail = () => {
                 </Badge>
               </div>
               
-              <h1 className="text-3xl font-bold text-foreground mb-2">{trial.id}</h1>
+              <h1 className="text-3xl font-bold text-foreground mb-2">{trial.Description || trial.Number}</h1>
               <div className="flex items-center text-muted-foreground mb-4">
                 <MapPin className="h-4 w-4 mr-2" />
-                {trial.school}
+                {trial.Sponsor}
               </div>
-              <p className="text-muted-foreground">Clinical trial entry for {trial.id} at {trial.school}</p>
+              <p className="text-muted-foreground">{trial.Description || `Clinical trial ${trial.Number} sponsored by ${trial.Sponsor}`}</p>
             </div>
             
             <div className="lg:w-80">
@@ -122,15 +122,15 @@ const TrialDetail = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center space-x-2">
                     <Clock className="h-4 w-4 text-primary" />
-                    <span className="text-sm">Trial ID: {trial.id}</span>
+                    <span className="text-sm">Trial Number: {trial.Number}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Users className="h-4 w-4 text-primary" />
-                    <span className="text-sm">Phase: Clinical Trial</span>
+                    <span className="text-sm">Phase: {trial.Phase}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <MapPin className="h-4 w-4 text-primary" />
-                    <span className="text-sm">{trial.school}</span>
+                    <span className="text-sm">Sponsor: {trial.Sponsor}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Shield className="h-4 w-4 text-primary" />
@@ -148,16 +148,24 @@ const TrialDetail = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h4 className="font-medium text-foreground mb-2">Participant Name:</h4>
-                  <p className="text-sm">{trial.id}</p>
+                  <h4 className="font-medium text-foreground mb-2">Medical Conditions:</h4>
+                  <p className="text-sm">{trial.Conditions}</p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-foreground mb-2">Associated Institution:</h4>
-                  <p className="text-sm">{trial.school}</p>
+                  <h4 className="font-medium text-foreground mb-2">Product Being Tested:</h4>
+                  <p className="text-sm">{trial.Product}</p>
                 </div>
                 <div>
                   <h4 className="font-medium text-foreground mb-2">Trial Status:</h4>
-                  <p className="text-sm">Active</p>
+                  <p className="text-sm">{trial.Status}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-foreground mb-2">Age Group:</h4>
+                  <p className="text-sm">{trial.Age_group}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-foreground mb-2">Gender:</h4>
+                  <p className="text-sm">{trial.Gender}</p>
                 </div>
               </CardContent>
             </Card>
@@ -179,25 +187,25 @@ const TrialDetail = () => {
                   <div className="flex items-start space-x-3">
                     <div className="w-2 h-2 bg-success rounded-full mt-2"></div>
                     <p className="text-sm text-muted-foreground">
-                      <strong>Participant:</strong> {trial.id}
+                      <strong>Trial Number:</strong> {trial.Number}
                     </p>
                   </div>
                   <div className="flex items-start space-x-3">
                     <div className="w-2 h-2 bg-success rounded-full mt-2"></div>
                     <p className="text-sm text-muted-foreground">
-                      <strong>Institution:</strong> {trial.school}
+                      <strong>Sponsor:</strong> {trial.Sponsor}
                     </p>
                   </div>
                   <div className="flex items-start space-x-3">
                     <div className="w-2 h-2 bg-success rounded-full mt-2"></div>
                     <p className="text-sm text-muted-foreground">
-                      <strong>Status:</strong> Active trial entry
+                      <strong>Status:</strong> {trial.Status}
                     </p>
                   </div>
                   <div className="flex items-start space-x-3">
                     <div className="w-2 h-2 bg-success rounded-full mt-2"></div>
                     <p className="text-sm text-muted-foreground">
-                      <strong>Type:</strong> Clinical research study
+                      <strong>Phase:</strong> {trial.Phase}
                     </p>
                   </div>
                 </div>

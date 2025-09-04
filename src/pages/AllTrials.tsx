@@ -15,7 +15,7 @@ const AllTrials = () => {
     const fetchTrials = async () => {
       try {
         const { data, error } = await (supabase as any)
-          .from('test')
+          .from('derm')
           .select('*');
 
         if (error) {
@@ -93,10 +93,10 @@ const AllTrials = () => {
               <Card key={trial.id || index} variant="healthcare" className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <CardTitle className="text-lg leading-tight">
-                    {trial.id}
+                    {trial.Description || trial.Number}
                   </CardTitle>
                   <CardDescription className="text-sm">
-                    School: {trial.school}
+                    Status: {trial.Status} | Phase: {trial.Phase}
                   </CardDescription>
                 </CardHeader>
                 
@@ -105,7 +105,7 @@ const AllTrials = () => {
                     <div className="text-sm text-muted-foreground">
                       Trial Entry
                     </div>
-                    <Link to={`/trial/${trial.id}`}>
+                    <Link to={`/trial/${trial.Number}`}>
                       <Button variant="outline" size="sm">
                         Learn More
                       </Button>
