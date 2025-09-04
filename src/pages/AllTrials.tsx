@@ -15,7 +15,18 @@ const AllTrials = () => {
   useEffect(() => {
     const fetchTrials = async () => {
       try {
-        const { data, error } = await (supabase as any)
+        // First sync RSS data
+        console.log('Syncing RSS data...');
+        const { error: syncError } = await supabase.functions.invoke('sync-trials-rss');
+        
+        if (syncError) {
+          console.error('Error syncing RSS:', syncError);
+        } else {
+          console.log('RSS sync completed');
+        }
+
+        // Then fetch updated trials
+        const { data, error } = await supabase
           .from('derm')
           .select('*');
 
