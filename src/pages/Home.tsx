@@ -1,11 +1,55 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Shield, Users, MapPin, Clock, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { User } from '@supabase/supabase-js';
 import heroImage from "@/assets/hero-diverse-patients.jpg";
 
 const Home = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [hasProfile, setHasProfile] = useState(false);
+
+  useEffect(() => {
+    const checkUserAndProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('id')
+          .eq('user_id', session.user.id)
+          .single();
+        
+        setHasProfile(!!profile);
+      }
+    };
+
+    checkUserAndProfile();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('id')
+            .eq('user_id', session.user.id)
+            .single();
+          
+          setHasProfile(!!profile);
+        } else {
+          setHasProfile(false);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -24,12 +68,30 @@ const Home = () => {
               We help match you to safe, ethical clinical trials in Dublin using responsible AI technology.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/questionnaire">
-                <Button variant="hero" size="lg" className="w-full sm:w-auto">
-                  Start Matching
-                  <ArrowRight className="h-5 w-5 ml-2" />
-                </Button>
-              </Link>
+              {user ? (
+                hasProfile ? (
+                  <Link to="/questionnaire">
+                    <Button variant="hero" size="lg" className="w-full sm:w-auto">
+                      Start Matching
+                      <ArrowRight className="h-5 w-5 ml-2" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link to="/health-questionnaire">
+                    <Button variant="hero" size="lg" className="w-full sm:w-auto">
+                      Complete Your Profile
+                      <ArrowRight className="h-5 w-5 ml-2" />
+                    </Button>
+                  </Link>
+                )
+              ) : (
+                <Link to="/auth">
+                  <Button variant="hero" size="lg" className="w-full sm:w-auto">
+                    Get Started
+                    <ArrowRight className="h-5 w-5 ml-2" />
+                  </Button>
+                </Link>
+              )}
               <Button variant="soft" size="lg" className="w-full sm:w-auto">
                 Learn More
               </Button>
@@ -217,9 +279,9 @@ const Home = () => {
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Join hundreds of patients who have found suitable clinical trials through our ethical AI matching system.
           </p>
-          <Link to="/questionnaire">
+          <Link to={user ? (hasProfile ? "/questionnaire" : "/health-questionnaire") : "/auth"}>
             <Button variant="hero" size="lg">
-              Start Your Journey
+              {user ? (hasProfile ? "Start Your Journey" : "Complete Your Profile") : "Start Your Journey"}
               <ArrowRight className="h-5 w-5 ml-2" />
             </Button>
           </Link>

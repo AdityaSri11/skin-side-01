@@ -9,6 +9,8 @@ import Results from "./pages/Results";
 import TrialDetail from "./pages/TrialDetail";
 import Profile from "./pages/Profile";
 import AllTrials from "./pages/AllTrials";
+import Auth from "./pages/Auth";
+import HealthQuestionnaire from "./pages/HealthQuestionnaire";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import NotFound from "./pages/NotFound";
@@ -31,6 +33,8 @@ const App = () => (
               <Route path="/trials" element={<AllTrials />} />
               <Route path="/trial/:id" element={<TrialDetail />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/health-questionnaire" element={<HealthQuestionnaire />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
