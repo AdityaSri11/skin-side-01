@@ -18,17 +18,27 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
+    // Detect recovery flow from URL hash
+    const hash = window.location.hash
+    const params = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash)
+    const type = params.get('type')
+    if (type === 'recovery') {
+      setIsRecoveryMode(true)
+    }
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user) {
+        // Only redirect home when not in recovery flow
+        if (session?.user && !isRecoveryMode) {
           navigate('/');
         }
       }
@@ -39,13 +49,13 @@ const Auth = () => {
       setSession(session);
       setUser(session?.user ?? null);
       
-      if (session?.user) {
+      if (session?.user && !isRecoveryMode) {
         navigate('/');
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, isRecoveryMode]);
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -146,7 +156,75 @@ const Auth = () => {
     setLoading(false);
   };
 
-  if (user) {
+  const handleUpdatePassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const newPassword = formData.get('newPassword') as string;
+    const confirmNewPassword = formData.get('confirmNewPassword') as string;
+
+    if (newPassword !== confirmNewPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Password has been updated",
+      });
+      // Remove recovery hash from URL and exit recovery mode
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+      setIsRecoveryMode(false);
+      navigate('/');
+    }
+
+    setLoading(false);
+  };
+
+  if (isRecoveryMode) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">Reset your password</CardTitle>
+            <CardDescription>Enter and confirm your new password</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleUpdatePassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                <Input id="new-password" name="newPassword" type="password" placeholder="Enter new password" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                <Input id="confirm-new-password" name="confirmNewPassword" type="password" placeholder="Confirm new password" required />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Updating..." : "Update Password"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (user && !isRecoveryMode) {
     return null; // Will redirect in useEffect
   }
 
