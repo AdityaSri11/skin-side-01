@@ -43,7 +43,7 @@ interface FormData {
   primary_condition: string;
   condition_stage_severity: string;
   date_of_diagnosis: Date | undefined;
-  recent_test_results: string;
+  recent_test_results: File | null;
   prior_clinical_trials: string;
   treatments_for_condition: string;
   
@@ -81,7 +81,7 @@ const HealthQuestionnaire = () => {
     primary_condition: "",
     condition_stage_severity: "",
     date_of_diagnosis: undefined,
-    recent_test_results: "",
+    recent_test_results: null,
     prior_clinical_trials: "",
     treatments_for_condition: "",
     smoke_history: "",
@@ -104,7 +104,7 @@ const HealthQuestionnaire = () => {
     checkUser();
   }, [navigate]);
 
-  const handleInputChange = (field: keyof FormData, value: string | Date | undefined) => {
+  const handleInputChange = (field: keyof FormData, value: string | Date | undefined | File | null) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -151,6 +151,7 @@ const HealthQuestionnaire = () => {
       ...formData,
       date_of_birth: formData.date_of_birth?.toISOString().split('T')[0],
       date_of_diagnosis: formData.date_of_diagnosis?.toISOString().split('T')[0],
+      recent_test_results: formData.recent_test_results?.name || '',
     };
 
     const { error } = await supabase
@@ -374,14 +375,19 @@ const HealthQuestionnaire = () => {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="primary_condition">Primary Condition</Label>
-              <Textarea
-                id="primary_condition"
-                value={formData.primary_condition}
-                onChange={(e) => handleInputChange('primary_condition', e.target.value.slice(0, 150))}
-                maxLength={150}
-                placeholder="Describe your primary condition..."
-                className="min-h-[80px]"
-              />
+              <Select value={formData.primary_condition} onValueChange={(value) => handleInputChange('primary_condition', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your primary condition" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="psoriasis">Psoriasis</SelectItem>
+                  <SelectItem value="eczema">Eczema</SelectItem>
+                  <SelectItem value="acne">Acne</SelectItem>
+                  <SelectItem value="hidradenitis">Hidradenitis</SelectItem>
+                  <SelectItem value="melanoma">Melanoma</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="condition_stage_severity">Stage / Severity of Condition *</Label>
@@ -425,15 +431,22 @@ const HealthQuestionnaire = () => {
               </Popover>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="recent_test_results">Most Recent Test Results</Label>
-              <Textarea
+              <Label htmlFor="recent_test_results">Most Recent Test Results (PDF Upload)</Label>
+              <Input
                 id="recent_test_results"
-                value={formData.recent_test_results}
-                onChange={(e) => handleInputChange('recent_test_results', e.target.value.slice(0, 150))}
-                maxLength={150}
-                placeholder="Describe recent test results..."
-                className="min-h-[80px]"
+                type="file"
+                accept=".pdf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  handleInputChange('recent_test_results', file);
+                }}
+                className="cursor-pointer"
               />
+              {formData.recent_test_results && (
+                <p className="text-sm text-muted-foreground">
+                  Selected: {formData.recent_test_results.name}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="prior_clinical_trials">Prior Participation in Clinical Trials *</Label>

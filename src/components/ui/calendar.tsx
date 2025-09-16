@@ -4,6 +4,7 @@ import { DayPicker } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
@@ -13,10 +14,35 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  const [selectedYear, setSelectedYear] = React.useState<number>();
+  const [selectedMonth, setSelectedMonth] = React.useState<number>();
+
+  // Generate year options (current year back to 1900)
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 1899 }, (_, i) => currentYear - i);
+  
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  const handleYearSelect = (year: string) => {
+    setSelectedYear(parseInt(year));
+    const newDate = new Date(parseInt(year), selectedMonth || 0, 1);
+    props.onMonthChange?.(newDate);
+  };
+
+  const handleMonthSelect = (month: string) => {
+    const monthIndex = months.indexOf(month);
+    setSelectedMonth(monthIndex);
+    const newDate = new Date(selectedYear || currentYear, monthIndex, 1);
+    props.onMonthChange?.(newDate);
+  };
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
+      className={cn("p-3 pointer-events-auto", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
@@ -54,6 +80,39 @@ function Calendar({
       components={{
         IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
+        Caption: ({ displayMonth }) => {
+          const currentYear = displayMonth.getFullYear();
+          const currentMonth = displayMonth.getMonth();
+          
+          return (
+            <div className="flex justify-center items-center space-x-2 py-2">
+              <Select value={months[currentMonth]} onValueChange={handleMonthSelect}>
+                <SelectTrigger className="w-[110px] h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-background">
+                  {months.map((month) => (
+                    <SelectItem key={month} value={month}>
+                      {month}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={currentYear.toString()} onValueChange={handleYearSelect}>
+                <SelectTrigger className="w-[80px] h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-background max-h-[200px]">
+                  {years.map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          );
+        },
       }}
       {...props}
     />
