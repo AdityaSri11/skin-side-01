@@ -37,9 +37,9 @@ const Auth = () => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Only redirect home when not in recovery flow
+        // Redirect to questionnaire for new users, home for existing users
         if (session?.user && !isRecoveryMode) {
-          navigate('/');
+          checkUserProfile(session.user);
         }
       }
     );
@@ -50,12 +50,26 @@ const Auth = () => {
       setUser(session?.user ?? null);
       
       if (session?.user && !isRecoveryMode) {
-        navigate('/');
+        checkUserProfile(session.user);
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate, isRecoveryMode]);
+
+  const checkUserProfile = async (user: any) => {
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (profile) {
+      navigate('/');
+    } else {
+      navigate('/health-questionnaire');
+    }
+  };
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

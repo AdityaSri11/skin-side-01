@@ -41,6 +41,7 @@ interface FormData {
   
   // Primary Condition
   primary_condition: string;
+  other_condition?: string;
   condition_stage_severity: string;
   date_of_diagnosis: Date | undefined;
   recent_test_results: File | null;
@@ -79,6 +80,7 @@ const HealthQuestionnaire = () => {
     over_counter_medications: "",
     recent_medication_changes: "",
     primary_condition: "",
+    other_condition: "",
     condition_stage_severity: "",
     date_of_diagnosis: undefined,
     recent_test_results: null,
@@ -146,12 +148,36 @@ const HealthQuestionnaire = () => {
 
     setLoading(true);
     
+    let testResultsUrl = '';
+    
+    // Upload PDF if one was selected
+    if (formData.recent_test_results) {
+      const fileExt = formData.recent_test_results.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('derm_test_results')
+        .upload(fileName, formData.recent_test_results);
+      
+      if (uploadError) {
+        toast({
+          title: "Error",
+          description: "Failed to upload test results. Please try again.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+      
+      testResultsUrl = fileName;
+    }
+    
     const profileData = {
       user_id: user.id,
       ...formData,
       date_of_birth: formData.date_of_birth?.toISOString().split('T')[0],
       date_of_diagnosis: formData.date_of_diagnosis?.toISOString().split('T')[0],
-      recent_test_results: formData.recent_test_results?.name || '',
+      recent_test_results: testResultsUrl,
     };
 
     const { error } = await supabase
@@ -219,14 +245,14 @@ const HealthQuestionnaire = () => {
                     {formData.date_of_birth ? format(formData.date_of_birth, "PPP") : "Pick a date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className="w-auto p-0 bg-background border border-border z-50">
                   <Calendar
                     mode="single"
                     selected={formData.date_of_birth}
                     onSelect={(date) => handleInputChange('date_of_birth', date)}
                     disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                     initialFocus
-                    className="p-3 pointer-events-auto"
+                    className="p-3 pointer-events-auto bg-background"
                   />
                 </PopoverContent>
               </Popover>
@@ -237,7 +263,7 @@ const HealthQuestionnaire = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border border-border z-50">
                   <SelectItem value="male">Male</SelectItem>
                   <SelectItem value="female">Female</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
@@ -320,7 +346,7 @@ const HealthQuestionnaire = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select immunization status" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border border-border z-50">
                   <SelectItem value="up_to_date">Up to date</SelectItem>
                   <SelectItem value="partial">Partial</SelectItem>
                   <SelectItem value="none">None</SelectItem>
@@ -379,7 +405,7 @@ const HealthQuestionnaire = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select your primary condition" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border border-border z-50">
                   <SelectItem value="psoriasis">Psoriasis</SelectItem>
                   <SelectItem value="eczema">Eczema</SelectItem>
                   <SelectItem value="acne">Acne</SelectItem>
@@ -388,6 +414,18 @@ const HealthQuestionnaire = () => {
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
+              {formData.primary_condition === 'other' && (
+                <div className="space-y-2">
+                  <Label htmlFor="other_condition">Please specify (max 50 characters)</Label>
+                  <Input
+                    id="other_condition"
+                    value={formData.other_condition || ''}
+                    onChange={(e) => handleInputChange('other_condition', e.target.value.slice(0, 50))}
+                    maxLength={50}
+                    placeholder="Enter your condition"
+                  />
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="condition_stage_severity">Stage / Severity of Condition *</Label>
@@ -395,7 +433,7 @@ const HealthQuestionnaire = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select severity" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border border-border z-50">
                   <SelectItem value="mild">Mild</SelectItem>
                   <SelectItem value="moderate">Moderate</SelectItem>
                   <SelectItem value="severe">Severe</SelectItem>
@@ -418,14 +456,14 @@ const HealthQuestionnaire = () => {
                     {formData.date_of_diagnosis ? format(formData.date_of_diagnosis, "PPP") : "Pick a date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className="w-auto p-0 bg-background border border-border z-50">
                   <Calendar
                     mode="single"
                     selected={formData.date_of_diagnosis}
                     onSelect={(date) => handleInputChange('date_of_diagnosis', date)}
                     disabled={(date) => date > new Date()}
                     initialFocus
-                    className="p-3 pointer-events-auto"
+                    className="p-3 pointer-events-auto bg-background"
                   />
                 </PopoverContent>
               </Popover>
@@ -454,7 +492,7 @@ const HealthQuestionnaire = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select option" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border border-border z-50">
                   <SelectItem value="yes">Yes</SelectItem>
                   <SelectItem value="no">No</SelectItem>
                   <SelectItem value="unsure">Unsure</SelectItem>
@@ -484,7 +522,7 @@ const HealthQuestionnaire = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select smoking history" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border border-border z-50">
                   <SelectItem value="never">Never</SelectItem>
                   <SelectItem value="former">Former smoker</SelectItem>
                   <SelectItem value="current_light">Current - Light (1-10 cigarettes/day)</SelectItem>
@@ -499,7 +537,7 @@ const HealthQuestionnaire = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select alcohol intake" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border border-border z-50">
                   <SelectItem value="none">None</SelectItem>
                   <SelectItem value="occasional">Occasional (1-2 drinks/week)</SelectItem>
                   <SelectItem value="moderate">Moderate (3-7 drinks/week)</SelectItem>
@@ -513,7 +551,7 @@ const HealthQuestionnaire = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select option" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border border-border z-50">
                   <SelectItem value="pregnant">Pregnant</SelectItem>
                   <SelectItem value="breastfeeding">Breastfeeding</SelectItem>
                   <SelectItem value="neither">Neither</SelectItem>

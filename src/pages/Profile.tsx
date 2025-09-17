@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -5,18 +6,58 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Edit, Heart, MapPin, Clock, Users, MessageCircle, Settings, Bell, Bookmark, Calendar } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { User } from '@supabase/supabase-js';
 
 const Profile = () => {
-  const user = {
-    name: "Sarah Murphy",
-    email: "sarah.murphy@email.com",
-    phone: "+353 87 123 4567",
-    age: 25,
-    location: "North Dublin",
-    condition: "Eczema / Atopic Dermatitis",
-    joinDate: "January 2024"
-  };
+  const [user, setUser] = useState<User | null>(null);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        navigate('/auth');
+        return;
+      }
+      
+      setUser(session.user);
+      
+      // Fetch user profile data
+      const { data: profile, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
+      
+      if (!error && profile) {
+        setProfileData(profile);
+      }
+      
+      setLoading(false);
+    };
+
+    fetchUserProfile();
+  }, [navigate]);
+
+  if (loading) {
+    return <div className="min-h-screen bg-gradient-trust flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  const displayName = profileData ? `${profileData.first_name} ${profileData.last_name}` : user.email?.split('@')[0] || 'User';
+  const displayEmail = user.email || '';
+  const displayAge = profileData?.date_of_birth ? 
+    Math.floor((new Date().getTime() - new Date(profileData.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 
+    'Not specified';
+  const displayLocation = profileData?.address || 'Not specified';
+  const displayCondition = profileData?.primary_condition || 'Not specified';
 
   const savedTrials = [
     {
@@ -108,33 +149,33 @@ const Profile = () => {
           <div className="lg:col-span-1">
             <Card variant="healthcare">
               <CardContent className="p-6 text-center">
-                <Avatar className="w-20 h-20 mx-auto mb-4">
+                 <Avatar className="w-20 h-20 mx-auto mb-4">
                   <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                    {user.name.split(' ').map(n => n[0]).join('')}
+                    {displayName.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
-                <h2 className="text-xl font-semibold text-foreground mb-1">{user.name}</h2>
-                <p className="text-sm text-muted-foreground mb-4">{user.email}</p>
+                <h2 className="text-xl font-semibold text-foreground mb-1">{displayName}</h2>
+                <p className="text-sm text-muted-foreground mb-4">{displayEmail}</p>
                 
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-center space-x-2">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>{user.location}</span>
+                    <span>{displayLocation}</span>
                   </div>
                   <div className="flex items-center justify-center space-x-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
-                    <span>{user.age} years old</span>
+                    <span>{displayAge} years old</span>
                   </div>
                   <div className="flex items-center justify-center space-x-2">
                     <Heart className="h-4 w-4 text-muted-foreground" />
-                    <span>{user.condition}</span>
+                    <span>{displayCondition}</span>
                   </div>
                 </div>
 
                 <Separator className="my-4" />
 
                 <div className="text-xs text-muted-foreground mb-4">
-                  Member since {user.joinDate}
+                  Member since {user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently'}
                 </div>
 
                 <Button variant="outline" size="sm" className="w-full">
@@ -294,21 +335,21 @@ const Profile = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <h4 className="font-medium text-foreground mb-3">Current Preferences</h4>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Age:</span>
-                            <span>{user.age} years old</span>
+                            <span>{displayAge} years old</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Condition:</span>
-                            <span>{user.condition}</span>
+                            <span>{displayCondition}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Location:</span>
-                            <span>{user.location}</span>
+                            <span>{displayLocation}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Travel willingness:</span>
