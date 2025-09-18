@@ -172,9 +172,12 @@ const HealthQuestionnaire = () => {
       testResultsUrl = fileName;
     }
     
+    // Exclude fields that don't exist in the database schema
+    const { recent_test_results: _, other_condition, ...cleanFormData } = formData;
+    
     const profileData = {
       user_id: user.id,
-      ...formData,
+      ...cleanFormData,
       date_of_birth: formData.date_of_birth?.toISOString().split('T')[0],
       date_of_diagnosis: formData.date_of_diagnosis?.toISOString().split('T')[0],
       recent_test_results: testResultsUrl,
