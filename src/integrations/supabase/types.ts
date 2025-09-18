@@ -53,21 +53,6 @@ export type Database = {
         }
         Relationships: []
       }
-      test: {
-        Row: {
-          id: string
-          school: string
-        }
-        Insert: {
-          id?: string
-          school: string
-        }
-        Update: {
-          id?: string
-          school?: string
-        }
-        Relationships: []
-      }
       user_profiles: {
         Row: {
           address: string | null
