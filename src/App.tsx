@@ -11,6 +11,7 @@ import Profile from "./pages/Profile";
 import AllTrials from "./pages/AllTrials";
 import Auth from "./pages/Auth";
 import HealthQuestionnaire from "./pages/HealthQuestionnaire";
+import VerificationSuccess from "./pages/VerificationSuccess";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import NotFound from "./pages/NotFound";
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/health-questionnaire" element={<HealthQuestionnaire />} />
+              <Route path="/verification-success" element={<VerificationSuccess />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
