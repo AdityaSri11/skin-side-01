@@ -148,7 +148,7 @@ const HealthQuestionnaire = () => {
 
     setLoading(true);
     
-    let testResultsUrl = '';
+    let testResultsPath: string | null = null;
     
     // Upload PDF if one was selected
     if (formData.recent_test_results) {
@@ -169,7 +169,7 @@ const HealthQuestionnaire = () => {
         return;
       }
       
-      testResultsUrl = fileName;
+      testResultsPath = fileName;
     }
     
     // Exclude fields that don't exist in the database schema
@@ -180,7 +180,7 @@ const HealthQuestionnaire = () => {
       ...cleanFormData,
       date_of_birth: formData.date_of_birth?.toISOString().split('T')[0],
       date_of_diagnosis: formData.date_of_diagnosis?.toISOString().split('T')[0],
-      recent_test_results: testResultsUrl,
+      recent_test_results: testResultsPath,
     };
 
     const { error } = await supabase
@@ -188,9 +188,10 @@ const HealthQuestionnaire = () => {
       .insert(profileData);
 
     if (error) {
+      console.error('Profile insert error:', error);
       toast({
         title: "Error",
-        description: "Failed to save your information. Please try again.",
+        description: `Failed to save your information: ${error.message}`,
         variant: "destructive",
       });
     } else {
