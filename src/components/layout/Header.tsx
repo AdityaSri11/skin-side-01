@@ -24,7 +24,7 @@ const Header = () => {
         </Link>
 
         <nav className="hidden md:flex items-center space-x-6">
-          <Link to="/questionnaire" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <Link to="/trials" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Find Trials
           </Link>
           <Link to="/profile" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">

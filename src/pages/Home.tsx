@@ -2,15 +2,18 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Shield, Users, MapPin, Clock, CheckCircle } from "lucide-react";
+import { ArrowRight, Shield, Users, MapPin, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from '@supabase/supabase-js';
 import heroImage from "@/assets/hero-diverse-patients.jpg";
+import { generateTrialTitle } from "@/lib/utils";
 
 const Home = () => {
   const [user, setUser] = useState<User | null>(null);
   const [hasProfile, setHasProfile] = useState(false);
+  const [trials, setTrials] = useState<any[]>([]);
+  const [loadingTrials, setLoadingTrials] = useState(true);
 
   useEffect(() => {
     const checkUserAndProfile = async () => {
@@ -49,6 +52,30 @@ const Home = () => {
     );
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const fetchTrials = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('derm')
+          .select('*')
+          .limit(3);
+
+        if (error) {
+          console.error('Error fetching trials:', error);
+          return;
+        }
+
+        setTrials(data || []);
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoadingTrials(false);
+      }
+    };
+
+    fetchTrials();
   }, []);
   return (
     <div className="min-h-screen">
@@ -112,7 +139,7 @@ const Home = () => {
       {/* Trust Indicators */}
       <section className="py-16 bg-background">
         <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <Card variant="healthcare">
               <CardHeader className="text-center">
                 <Shield className="h-12 w-12 text-healthcare-blue mx-auto mb-4" />
@@ -129,16 +156,6 @@ const Home = () => {
                 <CardTitle className="text-xl">Expert Care</CardTitle>
                 <CardDescription>
                   Connected to Dublin's leading dermatology specialists
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card variant="healthcare">
-              <CardHeader className="text-center">
-                <CheckCircle className="h-12 w-12 text-success mx-auto mb-4" />
-                <CardTitle className="text-xl">HSE Approved</CardTitle>
-                <CardDescription>
-                  Working with Ireland's health service for your safety
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -206,67 +223,42 @@ const Home = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card variant="trial">
-              <CardHeader>
-                <div className="flex justify-between items-start mb-2">
-                  <Badge variant="pediatric">Pediatric</Badge>
-                  <Badge variant="compensation">€200 compensation</Badge>
-                </div>
-                <CardTitle className="text-lg">Eczema Treatment Study</CardTitle>
-                <CardDescription>Mater Hospital • 12 weeks</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Testing a new topical treatment for moderate to severe eczema in children aged 6-17.
-                </p>
-                <div className="flex items-center text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3 mr-1" />
-                  Enrolling now
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card variant="trial">
-              <CardHeader>
-                <div className="flex justify-between items-start mb-2">
-                  <Badge variant="travel">Travel support</Badge>
-                  <Badge variant="location">City Centre</Badge>
-                </div>
-                <CardTitle className="text-lg">Psoriasis Research</CardTitle>
-                <CardDescription>St. Vincent's Hospital • 24 weeks</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Investigating biological therapy effectiveness for moderate psoriasis.
-                </p>
-                <div className="flex items-center text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3 mr-1" />
-                  Starting March 2024
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card variant="trial">
-              <CardHeader>
-                <div className="flex justify-between items-start mb-2">
-                  <Badge variant="success">Fast track</Badge>
-                  <Badge variant="compensation">€150 compensation</Badge>
-                </div>
-                <CardTitle className="text-lg">Acne Prevention Study</CardTitle>
-                <CardDescription>Beaumont Hospital • 16 weeks</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Evaluating a new preventive approach for teenage acne.
-                </p>
-                <div className="flex items-center text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3 mr-1" />
-                  Urgent recruitment
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {loadingTrials ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Loading trials...</p>
+            </div>
+          ) : trials.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No trials found.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {trials.map((trial, index) => (
+                <Card key={trial.Number || index} variant="trial">
+                  <CardHeader>
+                    <CardTitle className="text-lg leading-tight">
+                      {generateTrialTitle(trial.Description, trial.Number)}
+                    </CardTitle>
+                    <CardDescription className="text-sm">
+                      Status: {trial.Status} | Phase: {trial.Phase}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex justify-between items-center pt-2 border-t">
+                      <div className="text-sm text-muted-foreground">
+                        Trial Entry
+                      </div>
+                      <Link to={`/trial/${trial.Number}`}>
+                        <Button variant="outline" size="sm">
+                          Learn More
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
