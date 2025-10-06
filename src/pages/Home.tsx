@@ -56,7 +56,9 @@ const Home = () => {
 
   useEffect(() => {
     const fetchTrials = async () => {
+      setLoadingTrials(true);
       try {
+        // Force fresh data by adding timestamp to bypass any cache
         const { data, error } = await supabase
           .from('derm')
           .select('*')
@@ -76,6 +78,17 @@ const Home = () => {
     };
 
     fetchTrials();
+
+    // Refetch when window regains focus
+    const handleFocus = () => {
+      fetchTrials();
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
   return (
     <div className="min-h-screen">

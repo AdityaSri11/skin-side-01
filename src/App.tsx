@@ -15,37 +15,43 @@ import VerificationSuccess from "./pages/VerificationSuccess";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import NotFound from "./pages/NotFound";
+import { useAutoSignOut } from "./hooks/useAutoSignOut";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <div className="min-h-screen flex flex-col">
-          <Header />
-          <main className="flex-1">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/questionnaire" element={<Questionnaire />} />
-              <Route path="/results" element={<Results />} />
-              <Route path="/trials" element={<AllTrials />} />
-              <Route path="/trial/:id" element={<TrialDetail />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/health-questionnaire" element={<HealthQuestionnaire />} />
-              <Route path="/verification-success" element={<VerificationSuccess />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  // Auto sign out when tab closes (WARNING: Creates poor UX)
+  useAutoSignOut();
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-1">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/questionnaire" element={<Questionnaire />} />
+                <Route path="/results" element={<Results />} />
+                <Route path="/trials" element={<AllTrials />} />
+                <Route path="/trial/:id" element={<TrialDetail />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/health-questionnaire" element={<HealthQuestionnaire />} />
+                <Route path="/verification-success" element={<VerificationSuccess />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
