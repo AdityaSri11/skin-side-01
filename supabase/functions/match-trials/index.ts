@@ -1,153 +1,176 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
+// This import is often necessary in Deno to ensure fetch behaves correctly in some environments
+import "https://deno.land/x/xhr@0.1.0/mod.ts"; 
 
+const LOVABLE_API_KEY = Deno.env.get('GEMINI_API_KEY');
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+
+// --- CORS Headers ---
+// Essential for allowing your frontend (web app) to talk to this backend service.
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// --- API Persona and Instructions ---
+const MATCHING_PERSONA = `You are a specialized Clinical Trial Matching Assistant. Your task is to perform a strict eligibility check between the provided Patient Data and Trial Criteria. You MUST respond with a single JSON object conforming to the specified structure.`;
+
+// --- The Main Server Handler ---
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  // 1. Handle Preflight OPTIONS request (CORS)
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
 
-  try {
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
+  try {
+    // 2. API Key Check
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY environment variable is not configured');
+    }
 
-    const { userProfile, trials } = await req.json();
+    // 3. Input Parsing and Validation
+    const { userProfile, trials } = await req.json();
 
-    if (!userProfile || !trials) {
-      return new Response(
-        JSON.stringify({ error: 'Missing userProfile or trials data' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    if (!userProfile || !trials) {
+      return new Response(
+        JSON.stringify({ error: 'Missing userProfile or trials data in request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    console.log('Matching user profile against', trials.length, 'trials');
+    console.log('Matching user profile against', trials.length, 'trials');
 
-    const systemPrompt = `You are a clinical trial matching expert. Analyze the user's health profile and compare it against available clinical trials to find the best matches.
+    // 4. Construct the Detailed User Prompt for Gemini
+    // Note: Age is calculated here from the date_of_birth field in userProfile.
+    const userPrompt = `
+      Analyze the User Profile below and compare it against the available Clinical Trials to find the best matches.
 
-Consider the following criteria:
-- Age eligibility (user age vs trial age_group)
-- Gender requirements (user gender vs trial gender)
-- Condition match (user's primary_condition vs trial conditions)
-- Medical history compatibility
-- Current medications and potential conflicts
-- Overall health status
+      --- USER PROFILE ---
+      - Name: ${userProfile.first_name || 'N/A'} ${userProfile.last_name || 'N/A'}
+      - **Age**: ${userProfile.date_of_birth ? Math.floor((new Date().getTime() - new Date(userProfile.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 'Not provided'}
+      - **Gender**: ${userProfile.gender || 'Not provided'}
+      - **Primary Condition**: ${userProfile.primary_condition || 'Not provided'}
+      - Condition Stage/Severity: ${userProfile.condition_stage_severity || 'Not provided'}
+      - Current Medications: ${userProfile.current_prescription_medications || 'None'}
+      - Allergies: ${userProfile.allergies || 'None'}
+      - Existing Medical Conditions: ${userProfile.existing_medical_conditions || 'None'}
+      - Previous Medical Conditions: ${userProfile.previous_medical_conditions || 'None'}
 
-Return a JSON array of matching trials with match scores (0-100) and detailed reasons for the match.`;
+      --- AVAILABLE TRIALS ---
+      ${trials.map((trial: any, idx: number) => `
+      Trial ${idx + 1}:
+      - Trial Number: ${trial.Number}
+      - **Phase**: ${trial.Phase || 'N/A'}
+      - **Product**: ${trial.Product || 'N/A'}
+      - **Sponsor**: ${trial.Sponsor}
+      - **Status**: ${trial.Status}
+      - **Age Group**: ${trial.Age_group || 'N/A'}
+      - **Gender**: ${trial.Gender || 'N/A'}
+      - **Conditions**: ${trial.Conditions || 'N/A'}
+      - **Description**: ${trial.Description || 'No description provided.'}
+      `).join('\n')}
 
-    const userPrompt = `User Profile:
-- Name: ${userProfile.first_name} ${userProfile.last_name}
-- Age: ${userProfile.date_of_birth ? Math.floor((new Date().getTime() - new Date(userProfile.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 'Not provided'}
-- Gender: ${userProfile.gender || 'Not provided'}
-- Primary Condition: ${userProfile.primary_condition || 'Not provided'}
-- Condition Stage/Severity: ${userProfile.condition_stage_severity || 'Not provided'}
-- Current Medications: ${userProfile.current_prescription_medications || 'None'}
-- Allergies: ${userProfile.allergies || 'None'}
-- Medical Conditions: ${userProfile.existing_medical_conditions || 'None'}
-- Previous Medical Conditions: ${userProfile.previous_medical_conditions || 'None'}
+      --- INSTRUCTIONS ---
+      1. Analyze the profile against each trial's criteria (Age, Gender, Conditions, Medications, Status).
+      2. Assign a match score from 0-100 (60 is the minimum threshold for inclusion).
+      3. Return ONLY trials that have a match score of 60 or higher.
+      4. Ensure your final output is a single, valid JSON object that strictly follows the format below.
 
-Available Trials:
-${trials.map((trial: any, idx: number) => `
-Trial ${idx + 1}:
-- Trial Number: ${trial.Number}
-- Phase: ${trial.Phase || 'Not specified'}
-- Product: ${trial.Product || 'Not specified'}
-- Sponsor: ${trial.Sponsor}
-- Description: ${trial.Description || 'No description'}
-- Status: ${trial.Status}
-- Age Group: ${trial.Age_group || 'Not specified'}
-- Gender: ${trial.Gender || 'Not specified'}
-- Conditions: ${trial.Conditions || 'Not specified'}
-- Endpoint: ${trial.Endpoint || 'Not specified'}
-`).join('\n')}
-
-Analyze each trial and return ONLY matching trials (score >= 60) in this JSON format:
-{
-  "matches": [
-    {
-      "trialNumber": "trial number",
-      "matchScore": 85,
-      "matchReasons": ["reason 1", "reason 2", "reason 3"],
-      "concerns": ["concern 1 if any"],
-      "recommendation": "brief recommendation"
-    }
-  ]
-}`;
-
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
-      
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+      --- REQUIRED JSON OUTPUT FORMAT ---
+      {
+        "matches": [
+          {
+            "trialNumber": "Trial Number from list",
+            "matchScore": 85,
+            "matchReasons": ["Meets age and condition criteria.", "Trial is currently recruiting."],
+            "concerns": ["Patient is on an exclusionary medication."],
+            "recommendation": "Brief summary on next steps (e.g., 'Requires lab test verification.')"
+          }
+        ]
       }
-      
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Payment required. Please add credits to your Lovable AI workspace.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+    `;
+
+    // 5. Construct the Native Gemini API Payload
+    const payload = {
+      // System Instruction sets the role/rules for the model (best practice in Gemini)
+      systemInstruction: {
+        parts: [{ text: MATCHING_PERSONA }]
+      },
+      // Contents holds the primary user query
+      contents: [{ 
+        role: 'user', 
+        parts: [{ text: userPrompt }] 
+      }],
+      // Request for structured JSON output (no formal schema used here, relying on prompt instruction)
+      config: {
+          // Setting the temperature low encourages less creative, more direct responses
+          temperature: 0.2
       }
+    };
 
-      throw new Error(`AI Gateway error: ${response.status}`);
-    }
+    // 6. Call the Gemini API Endpoint
+    const response = await fetch(`${GEMINI_API_URL}?key=${LOVABLE_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
 
-    const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
+    // 7. Handle API Errors
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Gemini API error:', response.status, errorText);
+      
+      return new Response(
+        JSON.stringify({ error: `AI service error: ${response.status} - ${errorText.substring(0, 100)}...` }),
+        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    console.log('AI Response:', aiResponse);
+    // 8. Extract and Parse AI Response
+    const data = await response.json();
+    
+    // Native Gemini API content path
+    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    // Parse the JSON response from AI
-    let matchResults;
-    try {
-      // Try to extract JSON from the response (AI might add markdown formatting)
-      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        matchResults = JSON.parse(jsonMatch[0]);
-      } else {
-        matchResults = JSON.parse(aiResponse);
-      }
-    } catch (parseError) {
-      console.error('Error parsing AI response:', parseError);
-      matchResults = {
-        matches: [],
-        rawResponse: aiResponse
-      };
-    }
+    if (!aiResponse) {
+      throw new Error("Gemini returned an empty response or an error candidate.");
+    }
+    
+    console.log('Raw AI Response:', aiResponse.substring(0, 500) + '...');
 
-    return new Response(
-      JSON.stringify(matchResults),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    // Robust JSON Parsing (to handle common LLM output formatting like markdown fences)
+    let matchResults;
+    try {
+      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        matchResults = JSON.parse(jsonMatch[0]);
+      } else {
+        matchResults = JSON.parse(aiResponse);
+      }
+    } catch (parseError) {
+      console.error('Error parsing final JSON from AI:', parseError);
+      // Fallback: return raw response if JSON parse fails
+      matchResults = {
+        matches: [],
+        error: "Failed to parse AI response as JSON.",
+        rawResponse: aiResponse
+      };
+    }
 
-  } catch (error) {
-    console.error('Error in match-trials function:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
+    // 9. Send Final Response back to the Frontend
+    return new Response(
+      JSON.stringify(matchResults),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    // Catch all major operational errors (e.g., key missing, network errors)
+    console.error('Critical error in server function:', error);
+    return new Response(
+      JSON.stringify({ error: error.message || 'An unknown internal server error occurred.' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
 });
