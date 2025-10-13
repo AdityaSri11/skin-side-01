@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, Edit, Heart, MapPin, Users, MessageCircle, Settings, Bell, Bookmark, Calendar as CalendarIcon, LogOut, Save, X, Upload, FileText } from "lucide-react";
+import { ArrowLeft, Edit, Heart, MapPin, Users, MessageCircle, Settings, Bell, Bookmark, Calendar as CalendarIcon, LogOut, Save, X, Upload, FileText, Sparkles } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from '@supabase/supabase-js';
@@ -26,6 +26,8 @@ const Profile = () => {
   const [editedProfile, setEditedProfile] = useState<any>(null);
   const [newTestResultFile, setNewTestResultFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [matching, setMatching] = useState(false);
+  const [matchResults, setMatchResults] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -154,6 +156,64 @@ const Profile = () => {
     }
   };
 
+  const handleMatchTrials = async () => {
+    if (!profileData) return;
+
+    setMatching(true);
+    setMatchResults(null);
+
+    try {
+      // Fetch all trials from database
+      const { data: trials, error: trialsError } = await supabase
+        .from('derm')
+        .select('*');
+
+      if (trialsError) throw trialsError;
+
+      if (!trials || trials.length === 0) {
+        toast({
+          title: "No Trials Available",
+          description: "There are no clinical trials in the database to match against.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Call the matching edge function
+      const { data, error } = await supabase.functions.invoke('match-trials', {
+        body: {
+          userProfile: profileData,
+          trials: trials
+        }
+      });
+
+      if (error) throw error;
+
+      setMatchResults(data);
+
+      if (data.matches && data.matches.length > 0) {
+        toast({
+          title: "Matches Found!",
+          description: `Found ${data.matches.length} potential trial match${data.matches.length > 1 ? 'es' : ''} for you.`,
+        });
+      } else {
+        toast({
+          title: "No Matches",
+          description: "No suitable clinical trials were found based on your profile.",
+        });
+      }
+    } catch (error) {
+      console.error('Error matching trials:', error);
+      toast({
+        title: "Error",
+        description: "Failed to match trials. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setMatching(false);
+    }
+  };
+
   if (loading) {
     return <div className="min-h-screen bg-gradient-trust flex items-center justify-center">Loading...</div>;
   }
@@ -257,6 +317,16 @@ const Profile = () => {
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
+                <Button 
+                  variant="hero" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={handleMatchTrials}
+                  disabled={matching || !profileData}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  {matching ? 'Matching...' : 'AI Match Trials'}
+                </Button>
                 <Button variant="ghost" size="sm" className="w-full justify-start">
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Chat with Support
@@ -271,6 +341,61 @@ const Profile = () => {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Match Results */}
+            {matchResults && matchResults.matches && matchResults.matches.length > 0 && (
+              <Card variant="healing" className="mt-6">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center">
+                    <Sparkles className="h-5 w-5 mr-2" />
+                    AI Match Results
+                  </CardTitle>
+                  <CardDescription>
+                    {matchResults.matches.length} trial{matchResults.matches.length > 1 ? 's' : ''} matched your profile
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {matchResults.matches.map((match: any, idx: number) => (
+                    <Card key={idx} variant="soft">
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-semibold">Trial {match.trialNumber}</h4>
+                          <Badge variant={match.matchScore >= 80 ? "default" : "secondary"}>
+                            {match.matchScore}% Match
+                          </Badge>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Match Reasons:</Label>
+                            <ul className="list-disc list-inside space-y-1 mt-1">
+                              {match.matchReasons.map((reason: string, i: number) => (
+                                <li key={i} className="text-foreground">{reason}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          {match.concerns && match.concerns.length > 0 && (
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Considerations:</Label>
+                              <ul className="list-disc list-inside space-y-1 mt-1">
+                                {match.concerns.map((concern: string, i: number) => (
+                                  <li key={i} className="text-orange-600">{concern}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {match.recommendation && (
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Recommendation:</Label>
+                              <p className="text-foreground mt-1">{match.recommendation}</p>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Main Content */}
