@@ -109,21 +109,12 @@ const Home = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               {user ? (
-                hasProfile ? (
-                  <Link to="/questionnaire">
-                    <Button variant="hero" size="lg" className="w-full sm:w-auto">
-                      Start Matching
-                      <ArrowRight className="h-5 w-5 ml-2" />
-                    </Button>
-                  </Link>
-                ) : (
-                  <Link to="/health-questionnaire">
-                    <Button variant="hero" size="lg" className="w-full sm:w-auto">
-                      Complete Your Profile
-                      <ArrowRight className="h-5 w-5 ml-2" />
-                    </Button>
-                  </Link>
-                )
+                <Link to="/profile">
+                  <Button variant="hero" size="lg" className="w-full sm:w-auto">
+                    My Profile
+                    <ArrowRight className="h-5 w-5 ml-2" />
+                  </Button>
+                </Link>
               ) : (
                 <Link to="/auth">
                   <Button variant="hero" size="lg" className="w-full sm:w-auto">
@@ -284,9 +275,9 @@ const Home = () => {
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Join hundreds of patients who have found suitable clinical trials through our ethical AI matching system.
           </p>
-          <Link to={user ? (hasProfile ? "/questionnaire" : "/health-questionnaire") : "/auth"}>
+          <Link to={user ? "/profile" : "/auth"}>
             <Button variant="hero" size="lg">
-              {user ? (hasProfile ? "Start Your Journey" : "Complete Your Profile") : "Start Your Journey"}
+              {user ? "My Profile" : "Start Your Journey"}
               <ArrowRight className="h-5 w-5 ml-2" />
             </Button>
           </Link>
