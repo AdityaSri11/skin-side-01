@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Home from "./pages/Home";
 import Questionnaire from "./pages/Questionnaire";
 import Results from "./pages/Results";
@@ -16,12 +17,46 @@ import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import NotFound from "./pages/NotFound";
 import { useAutoSignOut } from "./hooks/useAutoSignOut";
+import { AIMatchDialog } from "./components/AIMatchDialog";
+import { supabase } from "./integrations/supabase/client";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   // Auto sign out when tab closes (WARNING: Creates poor UX)
   useAutoSignOut();
+
+  const [aiMatchOpen, setAiMatchOpen] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profile) {
+          setProfileData(profile);
+        }
+      }
+    };
+
+    fetchProfile();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      fetchProfile();
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleAIMatchClick = () => {
+    setAiMatchOpen(true);
+  };
   
   return (
     <QueryClientProvider client={queryClient}>
@@ -30,7 +65,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <div className="min-h-screen flex flex-col">
-            <Header />
+            <Header onAIMatchClick={handleAIMatchClick} />
             <main className="flex-1">
               <Routes>
                 <Route path="/" element={<Home />} />
@@ -38,7 +73,7 @@ const App = () => {
                 <Route path="/results" element={<Results />} />
                 <Route path="/trials" element={<AllTrials />} />
                 <Route path="/trial/:id" element={<TrialDetail />} />
-                <Route path="/profile" element={<Profile />} />
+                <Route path="/profile" element={<Profile onAIMatchClick={handleAIMatchClick} />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/health-questionnaire" element={<HealthQuestionnaire />} />
                 <Route path="/verification-success" element={<VerificationSuccess />} />
@@ -48,6 +83,11 @@ const App = () => {
             </main>
             <Footer />
           </div>
+          <AIMatchDialog 
+            open={aiMatchOpen} 
+            onOpenChange={setAiMatchOpen}
+            profileData={profileData}
+          />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
