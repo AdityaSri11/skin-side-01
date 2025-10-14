@@ -81,6 +81,7 @@ export type Database = {
           recent_medication_changes: string | null
           recent_test_results: string | null
           smoke_history: string | null
+          travel_distance: string | null
           treatments_for_condition: string | null
           updated_at: string
           user_id: string
@@ -112,6 +113,7 @@ export type Database = {
           recent_medication_changes?: string | null
           recent_test_results?: string | null
           smoke_history?: string | null
+          travel_distance?: string | null
           treatments_for_condition?: string | null
           updated_at?: string
           user_id: string
@@ -143,6 +145,7 @@ export type Database = {
           recent_medication_changes?: string | null
           recent_test_results?: string | null
           smoke_history?: string | null
+          travel_distance?: string | null
           treatments_for_condition?: string | null
           updated_at?: string
           user_id?: string

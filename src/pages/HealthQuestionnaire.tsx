@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 
 interface FormData {
   // Personal Information
@@ -24,6 +25,7 @@ interface FormData {
   date_of_birth: Date | undefined;
   gender: string;
   address: string;
+  travel_distance: string;
   phone_number: string;
   email_address: string;
   
@@ -69,6 +71,7 @@ const HealthQuestionnaire = () => {
     date_of_birth: undefined,
     gender: "",
     address: "",
+    travel_distance: "",
     phone_number: "",
     email_address: "",
     previous_medical_conditions: "",
@@ -117,7 +120,7 @@ const HealthQuestionnaire = () => {
     switch (currentStep) {
       case 1:
         return formData.first_name && formData.last_name && formData.date_of_birth && 
-               formData.gender && formData.email_address;
+               formData.gender && formData.email_address && formData.address && formData.travel_distance;
       case 2:
         return formData.immunization_status;
       case 3:
@@ -276,14 +279,28 @@ const HealthQuestionnaire = () => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Textarea
-                id="address"
+              <Label htmlFor="address">Address *</Label>
+              <LocationAutocomplete
                 value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value.slice(0, 150))}
-                maxLength={150}
-                className="min-h-[60px]"
+                onChange={(value) => handleInputChange('address', value)}
+                placeholder="Start typing your address..."
               />
+              <p className="text-xs text-muted-foreground">
+                Select your exact location from the suggestions
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="travel_distance">Maximum Travel Distance *</Label>
+              <Select value={formData.travel_distance} onValueChange={(value) => handleInputChange('travel_distance', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select travel distance" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border border-border z-50">
+                  <SelectItem value="0-5km">Within 5 km (Walking distance)</SelectItem>
+                  <SelectItem value="5-25km">5-25 km (Short commute)</SelectItem>
+                  <SelectItem value="25km+">25+ km (Willing to travel far)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone_number">Phone Number</Label>

@@ -159,6 +159,17 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData }: AIMatchDialog
                           <p className="text-foreground mt-2 leading-relaxed">{match.recommendation}</p>
                         </div>
                       )}
+                      <div className="pt-2">
+                        <Button 
+                          variant="default" 
+                          className="w-full"
+                          onClick={() => {
+                            window.open(`/trial/${encodeURIComponent(match.trialNumber)}`, '_blank');
+                          }}
+                        >
+                          Learn More About This Trial
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
