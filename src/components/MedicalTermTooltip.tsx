@@ -66,12 +66,12 @@ export const MedicalTermTooltip = ({ text, className = "" }: MedicalTermTooltipP
         <TooltipProvider key={`tooltip-${keyCounter++}`}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="underline decoration-dotted cursor-help text-primary font-medium">
+              <span className="underline decoration-dotted cursor-help text-emerald-600 dark:text-emerald-400 font-medium">
                 {matchedTerm}
               </span>
             </TooltipTrigger>
-            <TooltipContent className="max-w-xs">
-              <p>{definition}</p>
+            <TooltipContent className="max-w-xs bg-card border-border shadow-lg">
+              <p className="text-card-foreground">{definition}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
