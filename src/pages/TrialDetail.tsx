@@ -80,18 +80,6 @@ const TrialDetail = () => {
           
           <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-6">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-3">
-                <Badge variant="success">95% match</Badge>
-                <Badge variant="compensation">
-                  <Euro className="h-3 w-3 mr-1" />
-                  €300 compensation
-                </Badge>
-                <Badge variant="travel">
-                  <Car className="h-3 w-3 mr-1" />
-                  Travel support
-                </Badge>
-              </div>
-              
               <h1 className="text-3xl font-bold text-foreground mb-2">{generateTrialTitle(trial.Description, trial.Number)}</h1>
               <div className="flex items-center text-muted-foreground mb-4">
                 <MapPin className="h-4 w-4 mr-2" />
