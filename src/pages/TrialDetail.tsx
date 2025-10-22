@@ -7,6 +7,7 @@ import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { generateTrialTitle } from "@/lib/utils";
+import { MedicalTermTooltip } from "@/components/MedicalTermTooltip";
 
 const TrialDetail = () => {
   const { id } = useParams();
@@ -96,7 +97,9 @@ const TrialDetail = () => {
                 <MapPin className="h-4 w-4 mr-2" />
                 {trial.Sponsor}
               </div>
-              <p className="text-muted-foreground">{trial.Description || `Clinical trial ${trial.Number} sponsored by ${trial.Sponsor}`}</p>
+              <p className="text-muted-foreground">
+                <MedicalTermTooltip text={trial.Description || `Clinical trial ${trial.Number} sponsored by ${trial.Sponsor}`} />
+              </p>
             </div>
             
             <div className="lg:w-80">
@@ -127,7 +130,9 @@ const TrialDetail = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <Users className="h-4 w-4 text-primary" />
-                    <span className="text-sm">Phase: {trial.Phase}</span>
+                    <span className="text-sm">
+                      Phase: <MedicalTermTooltip text={trial.Phase} />
+                    </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <MapPin className="h-4 w-4 text-primary" />
@@ -150,15 +155,21 @@ const TrialDetail = () => {
               <CardContent className="space-y-4">
                 <div>
                   <h4 className="font-medium text-foreground mb-2">Medical Conditions:</h4>
-                  <p className="text-sm">{trial.Conditions}</p>
+                  <p className="text-sm">
+                    <MedicalTermTooltip text={trial.Conditions} />
+                  </p>
                 </div>
                 <div>
                   <h4 className="font-medium text-foreground mb-2">Product Being Tested:</h4>
-                  <p className="text-sm">{trial.Product}</p>
+                  <p className="text-sm">
+                    <MedicalTermTooltip text={trial.Product} />
+                  </p>
                 </div>
                 <div>
                   <h4 className="font-medium text-foreground mb-2">Trial Status:</h4>
-                  <p className="text-sm">{trial.Status}</p>
+                  <p className="text-sm">
+                    <MedicalTermTooltip text={trial.Status} />
+                  </p>
                 </div>
                 <div>
                   <h4 className="font-medium text-foreground mb-2">Age Group:</h4>
@@ -206,7 +217,7 @@ const TrialDetail = () => {
                   <div className="flex items-start space-x-3">
                     <div className="w-2 h-2 bg-success rounded-full mt-2"></div>
                     <p className="text-sm text-muted-foreground">
-                      <strong>Phase:</strong> {trial.Phase}
+                      <strong>Phase:</strong> <MedicalTermTooltip text={trial.Phase} />
                     </p>
                   </div>
                 </div>

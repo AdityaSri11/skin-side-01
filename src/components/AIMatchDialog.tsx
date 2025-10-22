@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { MedicalTermTooltip } from "@/components/MedicalTermTooltip";
 
 interface AIMatchDialogProps {
   open: boolean;
@@ -139,7 +140,9 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData }: AIMatchDialog
                         <Label className="text-sm font-semibold text-muted-foreground">Match Reasons:</Label>
                         <ul className="list-disc list-inside space-y-2 mt-2">
                           {match.matchReasons.map((reason: string, i: number) => (
-                            <li key={i} className="text-foreground">{reason}</li>
+                            <li key={i} className="text-foreground">
+                              <MedicalTermTooltip text={reason} />
+                            </li>
                           ))}
                         </ul>
                       </div>
@@ -148,7 +151,9 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData }: AIMatchDialog
                           <Label className="text-sm font-semibold text-muted-foreground">Considerations:</Label>
                           <ul className="list-disc list-inside space-y-2 mt-2">
                             {match.concerns.map((concern: string, i: number) => (
-                              <li key={i} className="text-orange-600">{concern}</li>
+                              <li key={i} className="text-orange-600">
+                                <MedicalTermTooltip text={concern} />
+                              </li>
                             ))}
                           </ul>
                         </div>
@@ -156,7 +161,9 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData }: AIMatchDialog
                       {match.recommendation && (
                         <div>
                           <Label className="text-sm font-semibold text-muted-foreground">Recommendation:</Label>
-                          <p className="text-foreground mt-2 leading-relaxed">{match.recommendation}</p>
+                          <p className="text-foreground mt-2 leading-relaxed">
+                            <MedicalTermTooltip text={match.recommendation} />
+                          </p>
                         </div>
                       )}
                       <div className="pt-2">
