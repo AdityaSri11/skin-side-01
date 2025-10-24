@@ -63,18 +63,16 @@ export const MedicalTermTooltip = ({ text, className = "" }: MedicalTermTooltipP
       const definition = MEDICAL_TERMS[matchedTerm.toLowerCase()];
       
       result.push(
-        <TooltipProvider key={`tooltip-${keyCounter++}`}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="underline decoration-dotted cursor-help text-emerald-600 dark:text-emerald-400 font-medium">
-                {matchedTerm}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs bg-card border-border shadow-lg">
-              <p className="text-card-foreground">{definition}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip key={`tooltip-${keyCounter++}`}>
+          <TooltipTrigger asChild>
+            <span className="underline decoration-dotted cursor-help text-emerald-600 dark:text-emerald-400 font-medium">
+              {matchedTerm}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs bg-card border-border shadow-lg">
+            <p className="text-card-foreground">{definition}</p>
+          </TooltipContent>
+        </Tooltip>
       );
 
       // Update remaining text
@@ -85,5 +83,9 @@ export const MedicalTermTooltip = ({ text, className = "" }: MedicalTermTooltipP
     return result;
   };
 
-  return <span className={className}>{wrapTerms(text)}</span>;
+  return (
+    <TooltipProvider delayDuration={200}>
+      <span className={className}>{wrapTerms(text)}</span>
+    </TooltipProvider>
+  );
 };
