@@ -44,6 +44,7 @@ const MEDICAL_TERMS: Record<string, string> = {
   "endpoint": "What the study measures (like fewer heart attacks or lower blood pressure).",
   "adverse event": "A side effect or unwanted reaction.",
   "informed consent": "The process of explaining the study so people can decide if they want to join.",
+  "open-label study": "where the participants and the researchers knows which treatment is being given and there is no blinding or placebo used",
 };
 
 interface MedicalTermTooltipProps {
