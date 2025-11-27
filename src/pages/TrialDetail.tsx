@@ -209,57 +209,6 @@ const TrialDetail = () => {
               </CardContent>
             </Card>
 
-            {/* Ireland Contact Information */}
-            {(contacts.length > 0 || loadingContacts) && (
-              <Card variant="healthcare">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Mail className="h-5 w-5 mr-2" />
-                    Ireland Contact Information
-                  </CardTitle>
-                  <CardDescription>Contact details for this trial in Ireland</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {loadingContacts ? (
-                    <p className="text-sm text-muted-foreground">Loading contact information...</p>
-                  ) : contacts.length > 0 ? (
-                    contacts.map((contact, index) => (
-                      <div key={index} className="space-y-2 pb-4 border-b last:border-0 last:pb-0">
-                        <div className="flex items-center space-x-2">
-                          <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
-                          <span className="text-sm font-medium">{contact.location}</span>
-                        </div>
-                        {contact.siteName && (
-                          <p className="text-sm text-muted-foreground pl-6">{contact.siteName}</p>
-                        )}
-                        <div className="flex items-center space-x-2">
-                          <Mail className="h-4 w-4 text-primary flex-shrink-0" />
-                          <a 
-                            href={`mailto:${contact.email}`}
-                            className="text-sm text-primary hover:underline break-all"
-                          >
-                            {contact.email}
-                          </a>
-                        </div>
-                        {contact.phone && (
-                          <div className="flex items-center space-x-2">
-                            <Phone className="h-4 w-4 text-primary flex-shrink-0" />
-                            <a 
-                              href={`tel:${contact.phone}`}
-                              className="text-sm text-primary hover:underline"
-                            >
-                              {contact.phone}
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No Ireland contact information available for this trial.</p>
-                  )}
-                </CardContent>
-              </Card>
-            )}
 
           </div>
 
@@ -300,7 +249,43 @@ const TrialDetail = () => {
                     </p>
                   </div>
                 </div>
-                <Button variant="default" className="w-full">
+                
+                <Separator className="my-4" />
+                
+                {/* Ireland Contact Information */}
+                <div>
+                  <h4 className="font-semibold text-foreground mb-3 flex items-center">
+                    <Mail className="h-4 w-4 mr-2" />
+                    Ireland Contacts
+                  </h4>
+                  {loadingContacts ? (
+                    <p className="text-sm text-muted-foreground">Loading...</p>
+                  ) : contacts.length > 0 ? (
+                    <div className="space-y-3">
+                      {contacts.map((contact, index) => (
+                        <div key={index} className="space-y-1">
+                          <div className="flex items-start space-x-2">
+                            <MapPin className="h-3 w-3 text-success mt-1 flex-shrink-0" />
+                            <span className="text-xs font-medium">{contact.location}</span>
+                          </div>
+                          <div className="flex items-start space-x-2 pl-5">
+                            <Mail className="h-3 w-3 text-success mt-1 flex-shrink-0" />
+                            <a 
+                              href={`mailto:${contact.email}`}
+                              className="text-xs text-primary hover:underline break-all"
+                            >
+                              {contact.email}
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">No contact info available</p>
+                  )}
+                </div>
+                
+                <Button variant="default" className="w-full mt-4">
                   Contact for Details
                 </Button>
               </CardContent>
