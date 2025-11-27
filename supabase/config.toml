@@ -2,3 +2,6 @@ project_id = "rclqvwqlquldwmgttltq"
 
 [functions.match-trials]
 verify_jwt = false
+
+[functions.fetch-trial-contacts]
+verify_jwt = false

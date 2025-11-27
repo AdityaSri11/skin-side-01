@@ -9,10 +9,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { generateTrialTitle } from "@/lib/utils";
 import { MedicalTermTooltip } from "@/components/MedicalTermTooltip";
 
+interface ContactInfo {
+  location: string;
+  email: string;
+  phone?: string;
+  siteName?: string;
+}
+
 const TrialDetail = () => {
   const { id } = useParams();
   const [trial, setTrial] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [contacts, setContacts] = useState<ContactInfo[]>([]);
+  const [loadingContacts, setLoadingContacts] = useState(false);
 
   useEffect(() => {
     const fetchTrial = async () => {
@@ -39,6 +48,36 @@ const TrialDetail = () => {
     };
 
     fetchTrial();
+  }, [id]);
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      if (!id) return;
+      
+      setLoadingContacts(true);
+      try {
+        console.log('Fetching Ireland contacts for trial:', id);
+        const { data, error } = await supabase.functions.invoke('fetch-trial-contacts', {
+          body: { trialNumber: id }
+        });
+
+        if (error) {
+          console.error('Error fetching contacts:', error);
+          return;
+        }
+
+        if (data && data.contacts) {
+          console.log('Received contacts:', data.contacts);
+          setContacts(data.contacts);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoadingContacts(false);
+      }
+    };
+
+    fetchContacts();
   }, [id]);
 
   if (loading) {
@@ -169,6 +208,58 @@ const TrialDetail = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Ireland Contact Information */}
+            {(contacts.length > 0 || loadingContacts) && (
+              <Card variant="healthcare">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Mail className="h-5 w-5 mr-2" />
+                    Ireland Contact Information
+                  </CardTitle>
+                  <CardDescription>Contact details for this trial in Ireland</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {loadingContacts ? (
+                    <p className="text-sm text-muted-foreground">Loading contact information...</p>
+                  ) : contacts.length > 0 ? (
+                    contacts.map((contact, index) => (
+                      <div key={index} className="space-y-2 pb-4 border-b last:border-0 last:pb-0">
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                          <span className="text-sm font-medium">{contact.location}</span>
+                        </div>
+                        {contact.siteName && (
+                          <p className="text-sm text-muted-foreground pl-6">{contact.siteName}</p>
+                        )}
+                        <div className="flex items-center space-x-2">
+                          <Mail className="h-4 w-4 text-primary flex-shrink-0" />
+                          <a 
+                            href={`mailto:${contact.email}`}
+                            className="text-sm text-primary hover:underline break-all"
+                          >
+                            {contact.email}
+                          </a>
+                        </div>
+                        {contact.phone && (
+                          <div className="flex items-center space-x-2">
+                            <Phone className="h-4 w-4 text-primary flex-shrink-0" />
+                            <a 
+                              href={`tel:${contact.phone}`}
+                              className="text-sm text-primary hover:underline"
+                            >
+                              {contact.phone}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No Ireland contact information available for this trial.</p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
           </div>
 
