@@ -2,26 +2,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, ArrowRight, MapPin, Clock, Users, Euro, Car, Phone, Mail, Info, Shield, Calendar, FileText } from "lucide-react";
+import { ArrowLeft, ArrowRight, MapPin, Clock, Users, Info, Shield, Calendar, FileText } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { generateTrialTitle } from "@/lib/utils";
 import { MedicalTermTooltip } from "@/components/MedicalTermTooltip";
 
-interface ContactInfo {
-  location: string;
-  email: string;
-  phone?: string;
-  siteName?: string;
+interface TrialLinks {
+  ctisUrl: string;
+  clinicalTrialsUrl: string;
 }
 
 const TrialDetail = () => {
   const { id } = useParams();
   const [trial, setTrial] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [contacts, setContacts] = useState<ContactInfo[]>([]);
-  const [loadingContacts, setLoadingContacts] = useState(false);
+  const [trialLinks, setTrialLinks] = useState<TrialLinks | null>(null);
+  const [loadingLinks, setLoadingLinks] = useState(false);
 
   useEffect(() => {
     const fetchTrial = async () => {
@@ -51,33 +49,36 @@ const TrialDetail = () => {
   }, [id]);
 
   useEffect(() => {
-    const fetchContacts = async () => {
+    const fetchLinks = async () => {
       if (!id) return;
       
-      setLoadingContacts(true);
+      setLoadingLinks(true);
       try {
-        console.log('Fetching Ireland contacts for trial:', id);
+        console.log('Fetching trial links for:', id);
         const { data, error } = await supabase.functions.invoke('fetch-trial-contacts', {
           body: { trialNumber: id }
         });
 
         if (error) {
-          console.error('Error fetching contacts:', error);
+          console.error('Error fetching trial links:', error);
           return;
         }
 
-        if (data && data.contacts) {
-          console.log('Received contacts:', data.contacts);
-          setContacts(data.contacts);
+        if (data && data.ctisUrl && data.clinicalTrialsUrl) {
+          console.log('Received trial links:', data);
+          setTrialLinks({
+            ctisUrl: data.ctisUrl,
+            clinicalTrialsUrl: data.clinicalTrialsUrl
+          });
         }
       } catch (error) {
         console.error('Error:', error);
       } finally {
-        setLoadingContacts(false);
+        setLoadingLinks(false);
       }
     };
 
-    fetchContacts();
+    fetchLinks();
   }, [id]);
 
   if (loading) {
@@ -252,42 +253,37 @@ const TrialDetail = () => {
                 
                 <Separator className="my-4" />
                 
-                {/* Ireland Contact Information */}
+                {/* Trial Information Links */}
                 <div>
                   <h4 className="font-semibold text-foreground mb-3 flex items-center">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Ireland Contacts
+                    <Info className="h-4 w-4 mr-2" />
+                    More Information
                   </h4>
-                  {loadingContacts ? (
+                  {loadingLinks ? (
                     <p className="text-sm text-muted-foreground">Loading...</p>
-                  ) : contacts.length > 0 ? (
-                    <div className="space-y-3">
-                      {contacts.map((contact, index) => (
-                        <div key={index} className="space-y-1">
-                          <div className="flex items-start space-x-2">
-                            <MapPin className="h-3 w-3 text-success mt-1 flex-shrink-0" />
-                            <span className="text-xs font-medium">{contact.location}</span>
-                          </div>
-                          <div className="flex items-start space-x-2 pl-5">
-                            <Mail className="h-3 w-3 text-success mt-1 flex-shrink-0" />
-                            <a 
-                              href={`mailto:${contact.email}`}
-                              className="text-xs text-primary hover:underline break-all"
-                            >
-                              {contact.email}
-                            </a>
-                          </div>
-                        </div>
-                      ))}
+                  ) : trialLinks ? (
+                    <div className="space-y-2">
+                      <a 
+                        href={trialLinks.ctisUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-xs text-primary hover:underline"
+                      >
+                        View on CTIS (EU Clinical Trials)
+                      </a>
+                      <a 
+                        href={trialLinks.clinicalTrialsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-xs text-primary hover:underline"
+                      >
+                        View on ClinicalTrials.gov
+                      </a>
                     </div>
                   ) : (
-                    <p className="text-xs text-muted-foreground">No contact info available</p>
+                    <p className="text-xs text-muted-foreground">Links unavailable</p>
                   )}
                 </div>
-                
-                <Button variant="default" className="w-full mt-4">
-                  Contact for Details
-                </Button>
               </CardContent>
             </Card>
           </div>
