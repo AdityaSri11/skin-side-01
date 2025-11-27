@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import * as cheerio from 'https://esm.sh/cheerio@1.0.0-rc.12';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,7 +8,7 @@ const corsHeaders = {
 
 interface ContactInfo {
   location: string;
-  email: string;
+  email?: string;
   phone?: string;
   siteName?: string;
 }
@@ -27,101 +28,126 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Fetching CTIS data for trial: ${trialNumber}`);
+    console.log(`Fetching contact data for trial: ${trialNumber}`);
     
-    // Fetch the CTIS page
-    const ctisUrl = `https://euclinicaltrials.eu/ctis-public/view/${trialNumber}?lang=en`;
-    const response = await fetch(ctisUrl);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch CTIS page: ${response.status}`);
-    }
-    
-    const html = await response.text();
-    console.log(`Fetched HTML, length: ${html.length}`);
-    
-    // Extract Ireland contact information - CTIS pages have contact info in specific sections
     const irelandContacts: ContactInfo[] = [];
     
-    // CTIS pages contain contact information in structured format
-    // Look for patterns like: Ireland...email...address or Ireland...contact
-    
-    // Pattern 1: Extract all email addresses from the page first
-    const allEmailsPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
-    const allEmails = [...html.matchAll(allEmailsPattern)].map(m => m[1].toLowerCase());
-    console.log(`Found ${allEmails.length} total email addresses on page`);
-    
-    // Pattern 2: Find sections that mention Ireland
-    // Look for "Ireland" followed by any content, then an email within reasonable proximity
-    const irelandSections = [];
-    let startIndex = 0;
-    while (true) {
-      const irelandIndex = html.toLowerCase().indexOf('ireland', startIndex);
-      if (irelandIndex === -1) break;
-      
-      // Extract 3000 chars before and 3000 after Ireland mention for context
-      const sectionStart = Math.max(0, irelandIndex - 3000);
-      const sectionEnd = Math.min(html.length, irelandIndex + 3000);
-      const section = html.substring(sectionStart, sectionEnd);
-      irelandSections.push(section);
-      
-      startIndex = irelandIndex + 1;
-    }
-    
-    console.log(`Found ${irelandSections.length} sections mentioning Ireland`);
-    
-    // Pattern 3: Extract emails from Ireland sections
-    for (const section of irelandSections) {
-      const emailMatches = section.matchAll(allEmailsPattern);
-      for (const match of emailMatches) {
-        const email = match[1].toLowerCase();
-        // Filter out common non-contact emails
-        if (!email.includes('example.com') && 
-            !email.includes('test.com') &&
-            !email.includes('noreply') &&
-            !email.includes('no-reply') &&
-            !irelandContacts.some(c => c.email === email)) {
-          irelandContacts.push({
-            location: 'Ireland',
-            email: email
-          });
-        }
-      }
-    }
-    
-    // Pattern 4: Look for "IE" country code near emails (Ireland's ISO code)
-    const iePattern = /\bIE\b.{0,500}?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})|([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}).{0,500}?\bIE\b/gi;
-    let match;
-    while ((match = iePattern.exec(html)) !== null) {
-      const email = (match[1] || match[2])?.toLowerCase();
-      if (email && 
-          !email.includes('example.com') && 
-          !email.includes('test.com') &&
-          !irelandContacts.some(c => c.email === email)) {
-        irelandContacts.push({
-          location: 'Ireland',
-          email: email
+    // Step 1: Try CTIS first
+    const ctisUrl = `https://euclinicaltrials.eu/ctis-public/view/${trialNumber}?lang=en`;
+    try {
+      const ctisResponse = await fetch(ctisUrl);
+      if (ctisResponse.ok) {
+        const ctisHtml = await ctisResponse.text();
+        const $ = cheerio.load(ctisHtml);
+        
+        // Look for Ireland-specific sections in CTIS
+        $('body').find('*').each((_, element) => {
+          const text = $(element).text();
+          if (text.toLowerCase().includes('ireland') || text.toLowerCase().includes('irish')) {
+            // Extract emails near Ireland mentions
+            const emailPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+            const emails = text.match(emailPattern);
+            
+            // Extract site/hospital names
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+            
+            if (emails) {
+              emails.forEach(email => {
+                if (!irelandContacts.some(c => c.email === email) && 
+                    !email.includes('example.com') && 
+                    !email.includes('test.com')) {
+                  // Try to find nearby site name
+                  const siteNameMatch = text.match(/([A-Z][a-zA-Z\s]+(?:Hospital|Clinic|Centre|Center|Medical|University|Institute))/);
+                  irelandContacts.push({
+                    location: 'Ireland',
+                    email: email.toLowerCase(),
+                    siteName: siteNameMatch ? siteNameMatch[1].trim() : undefined
+                  });
+                }
+              });
+            }
+          }
         });
+        
+        console.log(`Found ${irelandContacts.length} contacts from CTIS`);
+      }
+    } catch (error) {
+      console.error('Error fetching CTIS:', error);
+    }
+    
+    // Step 2: If no contacts found, try ClinicalTrials.gov
+    if (irelandContacts.length === 0) {
+      console.log('No contacts from CTIS, trying ClinicalTrials.gov');
+      
+      // Search for the trial by number
+      const searchUrl = `https://clinicaltrials.gov/api/v2/studies?query.term=${encodeURIComponent(trialNumber)}&format=json`;
+      
+      try {
+        const searchResponse = await fetch(searchUrl);
+        if (searchResponse.ok) {
+          const searchData = await searchResponse.json();
+          
+          if (searchData.studies && searchData.studies.length > 0) {
+            const study = searchData.studies[0];
+            const protocolSection = study.protocolSection;
+            
+            // Extract Ireland contacts
+            const contactsLocations = protocolSection?.contactsLocationsModule;
+            
+            if (contactsLocations?.locations) {
+              for (const location of contactsLocations.locations) {
+                if (location.country === 'Ireland' || location.city?.toLowerCase().includes('dublin') ||
+                    location.city?.toLowerCase().includes('cork') || location.city?.toLowerCase().includes('galway')) {
+                  
+                  const contact: ContactInfo = {
+                    location: `${location.city || ''}, Ireland`,
+                    siteName: location.facility
+                  };
+                  
+                  // Try to get contact info
+                  if (location.contacts && location.contacts.length > 0) {
+                    const primaryContact = location.contacts[0];
+                    if (primaryContact.email) {
+                      contact.email = primaryContact.email;
+                    }
+                    if (primaryContact.phone) {
+                      contact.phone = primaryContact.phone;
+                    }
+                  }
+                  
+                  irelandContacts.push(contact);
+                }
+              }
+            }
+            
+            // Also check central contacts if no location contacts found
+            if (irelandContacts.length === 0 && contactsLocations?.centralContacts) {
+              for (const contact of contactsLocations.centralContacts) {
+                if (contact.email) {
+                  irelandContacts.push({
+                    location: 'Ireland (Central Contact)',
+                    email: contact.email,
+                    phone: contact.phone,
+                    siteName: protocolSection?.identificationModule?.organization?.fullName
+                  });
+                }
+              }
+            }
+            
+            console.log(`Found ${irelandContacts.length} contacts from ClinicalTrials.gov`);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching ClinicalTrials.gov:', error);
       }
     }
     
-    // Remove duplicates and filter out common false positives
-    const uniqueContacts = irelandContacts
-      .filter((contact, index, self) => 
-        index === self.findIndex(c => c.email === contact.email)
-      )
-      .filter(contact => 
-        !contact.email.includes('example.com') && 
-        !contact.email.includes('test.com') &&
-        contact.email.includes('@')
-      );
-    
-    console.log(`Found ${uniqueContacts.length} Ireland contacts for trial ${trialNumber}`);
+    console.log(`Total Ireland contacts found: ${irelandContacts.length}`);
     
     return new Response(
       JSON.stringify({
         trialNumber,
-        contacts: uniqueContacts,
+        contacts: irelandContacts,
         ctisUrl
       }),
       { 
