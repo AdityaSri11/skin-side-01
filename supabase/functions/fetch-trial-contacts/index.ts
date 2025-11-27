@@ -40,35 +40,47 @@ serve(async (req) => {
     const html = await response.text();
     console.log(`Fetched HTML, length: ${html.length}`);
     
-    // Extract Ireland contact information
+    // Extract Ireland contact information - CTIS pages have contact info in specific sections
     const irelandContacts: ContactInfo[] = [];
     
-    // Look for Ireland sections with emails
-    // Pattern 1: Look for Ireland followed by email addresses
-    const irelandPattern = /Ireland[^<]*?(?:email|contact|e-mail)[^<]*?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi;
-    let match;
+    // CTIS pages contain contact information in structured format
+    // Look for patterns like: Ireland...email...address or Ireland...contact
     
-    while ((match = irelandPattern.exec(html)) !== null) {
-      if (match[1]) {
-        irelandContacts.push({
-          location: 'Ireland',
-          email: match[1].toLowerCase()
-        });
-      }
+    // Pattern 1: Extract all email addresses from the page first
+    const allEmailsPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+    const allEmails = [...html.matchAll(allEmailsPattern)].map(m => m[1].toLowerCase());
+    console.log(`Found ${allEmails.length} total email addresses on page`);
+    
+    // Pattern 2: Find sections that mention Ireland
+    // Look for "Ireland" followed by any content, then an email within reasonable proximity
+    const irelandSections = [];
+    let startIndex = 0;
+    while (true) {
+      const irelandIndex = html.toLowerCase().indexOf('ireland', startIndex);
+      if (irelandIndex === -1) break;
+      
+      // Extract 3000 chars before and 3000 after Ireland mention for context
+      const sectionStart = Math.max(0, irelandIndex - 3000);
+      const sectionEnd = Math.min(html.length, irelandIndex + 3000);
+      const section = html.substring(sectionStart, sectionEnd);
+      irelandSections.push(section);
+      
+      startIndex = irelandIndex + 1;
     }
     
-    // Pattern 2: Look for email addresses near Ireland mentions
-    const irelandIndex = html.toLowerCase().indexOf('ireland');
-    if (irelandIndex !== -1) {
-      // Search within 5000 characters after "Ireland" mention
-      const searchRange = html.substring(irelandIndex, irelandIndex + 5000);
-      const emailPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
-      let emailMatch;
-      
-      while ((emailMatch = emailPattern.exec(searchRange)) !== null) {
-        const email = emailMatch[1].toLowerCase();
-        // Avoid duplicate emails
-        if (!irelandContacts.some(c => c.email === email)) {
+    console.log(`Found ${irelandSections.length} sections mentioning Ireland`);
+    
+    // Pattern 3: Extract emails from Ireland sections
+    for (const section of irelandSections) {
+      const emailMatches = section.matchAll(allEmailsPattern);
+      for (const match of emailMatches) {
+        const email = match[1].toLowerCase();
+        // Filter out common non-contact emails
+        if (!email.includes('example.com') && 
+            !email.includes('test.com') &&
+            !email.includes('noreply') &&
+            !email.includes('no-reply') &&
+            !irelandContacts.some(c => c.email === email)) {
           irelandContacts.push({
             location: 'Ireland',
             email: email
@@ -77,13 +89,18 @@ serve(async (req) => {
       }
     }
     
-    // Pattern 3: Look for structured data or JSON that might contain Ireland contacts
-    const jsonPattern = /"country"\s*:\s*"(?:IE|Ireland)"[^}]*"email"\s*:\s*"([^"]+)"/gi;
-    while ((match = jsonPattern.exec(html)) !== null) {
-      if (match[1] && !irelandContacts.some(c => c.email === match[1].toLowerCase())) {
+    // Pattern 4: Look for "IE" country code near emails (Ireland's ISO code)
+    const iePattern = /\bIE\b.{0,500}?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})|([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}).{0,500}?\bIE\b/gi;
+    let match;
+    while ((match = iePattern.exec(html)) !== null) {
+      const email = (match[1] || match[2])?.toLowerCase();
+      if (email && 
+          !email.includes('example.com') && 
+          !email.includes('test.com') &&
+          !irelandContacts.some(c => c.email === email)) {
         irelandContacts.push({
           location: 'Ireland',
-          email: match[1].toLowerCase()
+          email: email
         });
       }
     }
