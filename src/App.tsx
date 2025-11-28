@@ -11,6 +11,7 @@ import TrialDetail from "./pages/TrialDetail";
 import Profile from "./pages/Profile";
 import AllTrials from "./pages/AllTrials";
 import Auth from "./pages/Auth";
+import DoctorAuth from "./pages/DoctorAuth";
 import HealthQuestionnaire from "./pages/HealthQuestionnaire";
 import VerificationSuccess from "./pages/VerificationSuccess";
 import Header from "./components/layout/Header";
@@ -92,6 +93,7 @@ const AppContent = () => {
             <Route path="/trial/:id" element={<TrialDetail />} />
             <Route path="/profile" element={<Profile onAIMatchClick={handleAIMatchClick} />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/doctor-auth" element={<DoctorAuth />} />
             <Route path="/health-questionnaire" element={<HealthQuestionnaire />} />
             <Route path="/verification-success" element={<VerificationSuccess />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
