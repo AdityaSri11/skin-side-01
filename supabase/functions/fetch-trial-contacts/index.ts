@@ -51,17 +51,21 @@ serve(async (req) => {
     // Extract Dublin contacts using the exact schema provided
     const targetData = dataDump?.authorizedApplication?.authorizedPartsII;
     
-    if (targetData && targetData[0]?.trialSites) {
-      for (const site of targetData[0].trialSites) {
-        const city = site?.organisationAddressInfo?.address?.city;
-        
-        if (city && city.startsWith('Dublin')) {
-          const name = site?.organisationAddressInfo?.organisation?.name || 'N/A';
-          const email = site?.personInfo?.email || 'N/A';
-          const phone = site?.personInfo?.telephone || 'N/A';
+    if (targetData) {
+      for (let x = 0; x < targetData.length; x++) {
+        if (targetData[x]?.trialSites) {
+          for (const site of targetData[x].trialSites) {
+            const city = site?.organisationAddressInfo?.address?.city;
+            
+            if (city && city.startsWith('Dublin')) {
+              const name = site?.organisationAddressInfo?.organisation?.name || 'N/A';
+              const email = site?.personInfo?.email || 'N/A';
+              const phone = site?.personInfo?.telephone || 'N/A';
 
-          contacts.push({ name, email, phone });
-          console.log(`Found Dublin contact: ${name}`);
+              contacts.push({ name, email, phone });
+              console.log(`Found Dublin contact: ${name}`);
+            }
+          }
         }
       }
     }
