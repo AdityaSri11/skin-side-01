@@ -9,7 +9,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { generateTrialTitle } from "@/lib/utils";
 import { MedicalTermTooltip } from "@/components/MedicalTermTooltip";
 
+interface ContactInfo {
+  name: string;
+  email: string;
+  phone: string;
+}
+
 interface TrialLinks {
+  contacts: ContactInfo[];
   ctisUrl: string;
   clinicalTrialsUrl: string;
 }
@@ -64,9 +71,10 @@ const TrialDetail = () => {
           return;
         }
 
-        if (data && data.ctisUrl && data.clinicalTrialsUrl) {
-          console.log('Received trial links:', data);
+        if (data) {
+          console.log('Received trial data:', data);
           setTrialLinks({
+            contacts: data.contacts || [],
             ctisUrl: data.ctisUrl,
             clinicalTrialsUrl: data.clinicalTrialsUrl
           });
@@ -253,15 +261,50 @@ const TrialDetail = () => {
                 
                 <Separator className="my-4" />
                 
+                {/* Dublin Contact Information */}
+                <div>
+                  <h4 className="font-semibold text-foreground mb-3 flex items-center">
+                    <Info className="h-4 w-4 mr-2" />
+                    Dublin Trial Sites
+                  </h4>
+                  {loadingLinks ? (
+                    <p className="text-sm text-muted-foreground">Loading...</p>
+                  ) : trialLinks && trialLinks.contacts.length > 0 ? (
+                    <div className="space-y-4">
+                      {trialLinks.contacts.map((contact, index) => (
+                        <div key={index} className="text-sm space-y-1 pb-3 border-b border-border last:border-0">
+                          <p className="font-medium text-foreground">{contact.name}</p>
+                          {contact.email !== 'N/A' && (
+                            <p className="text-xs text-muted-foreground">
+                              <a href={`mailto:${contact.email}`} className="text-primary hover:underline">
+                                {contact.email}
+                              </a>
+                            </p>
+                          )}
+                          {contact.phone !== 'N/A' && (
+                            <p className="text-xs text-muted-foreground">
+                              <a href={`tel:${contact.phone}`} className="text-primary hover:underline">
+                                {contact.phone}
+                              </a>
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">No Dublin contacts found</p>
+                  )}
+                </div>
+                
+                <Separator className="my-4" />
+                
                 {/* Trial Information Links */}
                 <div>
                   <h4 className="font-semibold text-foreground mb-3 flex items-center">
                     <Info className="h-4 w-4 mr-2" />
                     More Information
                   </h4>
-                  {loadingLinks ? (
-                    <p className="text-sm text-muted-foreground">Loading...</p>
-                  ) : trialLinks ? (
+                  {trialLinks && (
                     <div className="space-y-2">
                       <a 
                         href={trialLinks.ctisUrl}
@@ -280,8 +323,6 @@ const TrialDetail = () => {
                         View on ClinicalTrials.gov
                       </a>
                     </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">Links unavailable</p>
                   )}
                 </div>
               </CardContent>
