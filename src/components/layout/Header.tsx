@@ -47,6 +47,11 @@ const Header = ({ onAIMatchClick }: HeaderProps) => {
           <Link to="/profile" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             My Profile
           </Link>
+          <Link to="/doctor-auth">
+            <Button variant="outline" size="sm">
+              Doctor Login
+            </Button>
+          </Link>
           {user ? (
             <Button variant="healthcare" size="sm" onClick={onAIMatchClick}>
               <Sparkles className="h-4 w-4 mr-2" />
