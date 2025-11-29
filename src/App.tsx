@@ -12,6 +12,7 @@ import Profile from "./pages/Profile";
 import AllTrials from "./pages/AllTrials";
 import Auth from "./pages/Auth";
 import DoctorAuth from "./pages/DoctorAuth";
+import DoctorDashboard from "./pages/DoctorDashboard";
 import HealthQuestionnaire from "./pages/HealthQuestionnaire";
 import VerificationSuccess from "./pages/VerificationSuccess";
 import Header from "./components/layout/Header";
@@ -42,12 +43,28 @@ const AppContent = () => {
   const [signInAlertOpen, setSignInAlertOpen] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setIsAuthenticated(true);
+        
+        // Check user role
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+        
+        setUserRole(roleData?.role || null);
+
+        // Redirect doctors to dashboard
+        if (roleData?.role === 'doctor' && window.location.pathname === '/') {
+          navigate('/doctor-dashboard');
+        }
+
         const { data: profile } = await supabase
           .from('user_profiles')
           .select('*')
@@ -60,6 +77,7 @@ const AppContent = () => {
       } else {
         setIsAuthenticated(false);
         setProfileData(null);
+        setUserRole(null);
       }
     };
 
@@ -70,7 +88,7 @@ const AppContent = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const handleAIMatchClick = () => {
     if (!isAuthenticated) {
@@ -91,9 +109,10 @@ const AppContent = () => {
             <Route path="/results" element={<Results />} />
             <Route path="/trials" element={<AllTrials />} />
             <Route path="/trial/:id" element={<TrialDetail />} />
-            <Route path="/profile" element={<Profile onAIMatchClick={handleAIMatchClick} />} />
+            <Route path="/profile" element={<Profile onAIMatchClick={handleAIMatchClick} userRole={userRole} />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/doctor-auth" element={<DoctorAuth />} />
+            <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
             <Route path="/health-questionnaire" element={<HealthQuestionnaire />} />
             <Route path="/verification-success" element={<VerificationSuccess />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
