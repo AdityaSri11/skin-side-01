@@ -12,14 +12,41 @@ interface HeaderProps {
 
 const Header = ({ onAIMatchClick }: HeaderProps) => {
   const [user, setUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    const fetchUserAndRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
-    });
+      
+      if (user) {
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+        setUserRole(roleData?.role || null);
+      } else {
+        setUserRole(null);
+      }
+    };
+
+    fetchUserAndRole();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .single()
+          .then(({ data: roleData }) => {
+            setUserRole(roleData?.role || null);
+          });
+      } else {
+        setUserRole(null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -47,11 +74,13 @@ const Header = ({ onAIMatchClick }: HeaderProps) => {
           <Link to="/profile" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             My Profile
           </Link>
-          <Link to="/doctor-auth">
-            <Button variant="outline" size="sm">
-              Doctor Login
-            </Button>
-          </Link>
+          {userRole !== 'doctor' && (
+            <Link to="/doctor-auth">
+              <Button variant="outline" size="sm">
+                Doctor Login
+              </Button>
+            </Link>
+          )}
           {user ? (
             <Button variant="healthcare" size="sm" onClick={onAIMatchClick}>
               <Sparkles className="h-4 w-4 mr-2" />
