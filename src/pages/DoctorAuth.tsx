@@ -65,12 +65,27 @@ const DoctorAuth = () => {
       if (signUpError) throw signUpError;
 
       if (data.user) {
+        // Remove default patient role and assign doctor role
+        const { error: deleteError } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", data.user.id)
+          .eq("role", "patient");
+
+        if (deleteError) {
+          console.error("Error removing patient role:", deleteError);
+        }
+
         // Assign doctor role
         const { error: roleError } = await supabase
           .from("user_roles")
           .insert({ user_id: data.user.id, role: "doctor" });
 
-        if (roleError) throw roleError;
+        if (roleError) {
+          console.error("Error assigning doctor role:", roleError);
+          toast.error("Failed to assign doctor role. Please contact support.");
+          return;
+        }
 
         toast.success("Doctor account created successfully! Please check your email to verify your account.");
         setEmail("");
