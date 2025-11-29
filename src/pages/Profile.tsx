@@ -41,6 +41,12 @@ const Profile = ({ onAIMatchClick, userRole }: ProfileProps) => {
         navigate('/auth');
         return;
       }
+
+      // Redirect doctors to dashboard
+      if (userRole === 'doctor') {
+        navigate('/doctor-dashboard');
+        return;
+      }
       
       setUser(session.user);
       
@@ -60,7 +66,7 @@ const Profile = ({ onAIMatchClick, userRole }: ProfileProps) => {
     };
 
     fetchUserProfile();
-  }, [navigate]);
+  }, [navigate, userRole]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

@@ -27,6 +27,23 @@ const TrialDetail = () => {
   const [loading, setLoading] = useState(true);
   const [trialLinks, setTrialLinks] = useState<TrialLinks | null>(null);
   const [loadingLinks, setLoadingLinks] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+        setUserRole(roleData?.role || null);
+      }
+    };
+
+    fetchUserRole();
+  }, []);
 
   useEffect(() => {
     const fetchTrial = async () => {
@@ -121,9 +138,12 @@ const TrialDetail = () => {
       <div className="container max-w-4xl">
         {/* Header */}
         <div className="mb-8">
-          <Link to="/results" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
+          <Link 
+            to={userRole === 'doctor' ? '/doctor-dashboard' : '/trials'} 
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Results
+            {userRole === 'doctor' ? 'Back to Dashboard' : 'Back to Trials'}
           </Link>
           
           <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-6">
