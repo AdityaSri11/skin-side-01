@@ -31,7 +31,7 @@ const DoctorAuth = () => {
           .single();
         
         if (roleData) {
-          navigate("/");
+          navigate("/doctor-dashboard");
         }
       }
     };
@@ -107,7 +107,7 @@ const DoctorAuth = () => {
       }
 
       toast.success("Welcome back, Doctor!");
-      navigate("/");
+      navigate("/doctor-dashboard");
     } catch (error: any) {
       toast.error(error.message || "Failed to sign in");
     } finally {

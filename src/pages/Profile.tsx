@@ -20,9 +20,10 @@ import { useToast } from "@/components/ui/use-toast";
 
 interface ProfileProps {
   onAIMatchClick?: () => void;
+  userRole?: string | null;
 }
 
-const Profile = ({ onAIMatchClick }: ProfileProps) => {
+const Profile = ({ onAIMatchClick, userRole }: ProfileProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -63,7 +64,11 @@ const Profile = ({ onAIMatchClick }: ProfileProps) => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    navigate('/');
+    if (userRole === 'doctor') {
+      navigate('/doctor-auth');
+    } else {
+      navigate('/');
+    }
   };
 
   const handleEdit = () => {
