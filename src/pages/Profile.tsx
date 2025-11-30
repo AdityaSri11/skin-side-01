@@ -21,9 +21,11 @@ import { useToast } from "@/components/ui/use-toast";
 interface ProfileProps {
   onAIMatchClick?: () => void;
   userRole?: string | null;
+  savedMatches?: any;
+  onMatchSaved?: () => void;
 }
 
-const Profile = ({ onAIMatchClick, userRole }: ProfileProps) => {
+const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onMatchSaved }: ProfileProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -31,8 +33,27 @@ const Profile = ({ onAIMatchClick, userRole }: ProfileProps) => {
   const [editedProfile, setEditedProfile] = useState<any>(null);
   const [newTestResultFile, setNewTestResultFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [savedMatches, setSavedMatches] = useState<any>(propSavedMatches);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Update local state when prop changes
+  useEffect(() => {
+    setSavedMatches(propSavedMatches);
+  }, [propSavedMatches]);
+
+  const fetchSavedMatches = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('ai_match_results')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    if (!error && data) {
+      setSavedMatches(data);
+      onMatchSaved?.();
+    }
+  };
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -61,6 +82,9 @@ const Profile = ({ onAIMatchClick, userRole }: ProfileProps) => {
         setProfileData(profile);
         setEditedProfile(profile);
       }
+
+      // Fetch saved AI match results
+      await fetchSavedMatches(session.user.id);
       
       setLoading(false);
     };
@@ -303,8 +327,9 @@ const Profile = ({ onAIMatchClick, userRole }: ProfileProps) => {
           {/* Main Content */}
           <div className="lg:col-span-3">
             <Tabs defaultValue="profile" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="profile">My Profile</TabsTrigger>
+                <TabsTrigger value="matches">AI Matches</TabsTrigger>
                 <TabsTrigger value="preferences">Preferences</TabsTrigger>
               </TabsList>
 
@@ -513,6 +538,93 @@ const Profile = ({ onAIMatchClick, userRole }: ProfileProps) => {
                     </CardContent>
                   </Card>
                 )}
+              </TabsContent>
+
+              {/* AI Matches Tab */}
+              <TabsContent value="matches" className="space-y-6">
+                <Card variant="healthcare">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Sparkles className="h-5 w-5 mr-2" />
+                      Your AI Match Results
+                    </CardTitle>
+                    <CardDescription>
+                      Saved clinical trial matches based on your health profile
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {savedMatches?.match_data?.matches && savedMatches.match_data.matches.length > 0 ? (
+                      <div className="space-y-4">
+                        <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-4">
+                          <p className="text-sm text-muted-foreground mb-1">
+                            Last match ran: {new Date(savedMatches.created_at).toLocaleDateString('en-US', { 
+                              month: 'long', 
+                              day: 'numeric', 
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                          <p className="font-semibold text-primary">
+                            {savedMatches.match_data.matches.length} Trial{savedMatches.match_data.matches.length > 1 ? 's' : ''} Matched
+                          </p>
+                        </div>
+
+                        {savedMatches.match_data.matches.map((match: any, idx: number) => (
+                          <Card key={idx} variant="soft">
+                            <CardContent className="p-6">
+                              <div className="flex justify-between items-start mb-4">
+                                <h4 className="text-lg font-semibold">Trial {match.trialNumber}</h4>
+                                <Badge variant={match.matchScore >= 80 ? "default" : "secondary"} className="text-base px-3 py-1">
+                                  {match.matchScore}% Match
+                                </Badge>
+                              </div>
+                              <div className="space-y-4">
+                                <div>
+                                  <Label className="text-sm font-semibold text-muted-foreground">Match Reasons:</Label>
+                                  <ul className="list-disc list-inside space-y-1 mt-2">
+                                    {match.matchReasons.map((reason: string, i: number) => (
+                                      <li key={i} className="text-foreground text-sm">{reason}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                {match.recommendation && (
+                                  <div>
+                                    <Label className="text-sm font-semibold text-muted-foreground">Recommendation:</Label>
+                                    <p className="text-foreground text-sm mt-2 leading-relaxed">{match.recommendation}</p>
+                                  </div>
+                                )}
+                                <div className="pt-2">
+                                  <Link to={`/trial/${encodeURIComponent(match.trialNumber)}`} target="_blank">
+                                    <Button variant="default" className="w-full">
+                                      View Trial Details
+                                    </Button>
+                                  </Link>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <Sparkles className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="font-medium text-foreground mb-2">No AI matches yet</h3>
+                        <p className="text-muted-foreground mb-6">
+                          Run AI matching to find clinical trials that match your health profile
+                        </p>
+                        <Button 
+                          variant="hero"
+                          onClick={onAIMatchClick}
+                          disabled={!profileData}
+                        >
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          Start AI Matching
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </TabsContent>
 
 

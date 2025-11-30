@@ -44,6 +44,19 @@ const AppContent = () => {
   const [profileData, setProfileData] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [savedMatches, setSavedMatches] = useState<any>(null);
+
+  const fetchSavedMatches = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('ai_match_results')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    if (!error && data) {
+      setSavedMatches(data);
+    }
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -74,10 +87,14 @@ const AppContent = () => {
         if (profile) {
           setProfileData(profile);
         }
+
+        // Fetch saved AI match results
+        await fetchSavedMatches(user.id);
       } else {
         setIsAuthenticated(false);
         setProfileData(null);
         setUserRole(null);
+        setSavedMatches(null);
       }
     };
 
@@ -97,6 +114,13 @@ const AppContent = () => {
       setAiMatchOpen(true);
     }
   };
+
+  const handleMatchSaved = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await fetchSavedMatches(user.id);
+    }
+  };
   
   return (
     <>
@@ -109,7 +133,7 @@ const AppContent = () => {
             <Route path="/results" element={<Results />} />
             <Route path="/trials" element={<AllTrials />} />
             <Route path="/trial/:id" element={<TrialDetail />} />
-            <Route path="/profile" element={<Profile onAIMatchClick={handleAIMatchClick} userRole={userRole} />} />
+            <Route path="/profile" element={<Profile onAIMatchClick={handleAIMatchClick} userRole={userRole} savedMatches={savedMatches} onMatchSaved={handleMatchSaved} />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/doctor-auth" element={<DoctorAuth />} />
             <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
@@ -125,6 +149,8 @@ const AppContent = () => {
         open={aiMatchOpen} 
         onOpenChange={setAiMatchOpen}
         profileData={profileData}
+        savedMatches={savedMatches}
+        onMatchSaved={handleMatchSaved}
       />
       <AlertDialog open={signInAlertOpen} onOpenChange={setSignInAlertOpen}>
         <AlertDialogContent>

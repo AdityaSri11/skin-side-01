@@ -1,24 +1,74 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { MedicalTermTooltip } from "@/components/MedicalTermTooltip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface AIMatchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   profileData: any;
+  savedMatches?: any;
+  onMatchSaved?: () => void;
 }
 
-export const AIMatchDialog = ({ open, onOpenChange, profileData }: AIMatchDialogProps) => {
+export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, onMatchSaved }: AIMatchDialogProps) => {
   const [matching, setMatching] = useState(false);
   const [matchResults, setMatchResults] = useState<any>(null);
+  const [canRematch, setCanRematch] = useState(true);
+  const [profileChanged, setProfileChanged] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Check if profile has changed since last match
+    if (savedMatches && profileData) {
+      const profileSnapshot = savedMatches.profile_snapshot;
+      const hasChanges = JSON.stringify(profileData) !== JSON.stringify(profileSnapshot);
+      setProfileChanged(hasChanges);
+      setCanRematch(hasChanges);
+    } else {
+      setCanRematch(true);
+      setProfileChanged(false);
+    }
+    
+    // Show saved matches when dialog opens
+    if (savedMatches && !matchResults) {
+      setMatchResults(savedMatches.match_data);
+    }
+  }, [savedMatches, profileData, open]);
+
+  const saveMatchResults = async (matches: any) => {
+    if (!profileData) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const matchData = {
+        user_id: user.id,
+        match_data: matches,
+        profile_snapshot: profileData,
+      };
+
+      // Use upsert to insert or update
+      const { error } = await supabase
+        .from('ai_match_results')
+        .upsert(matchData, { onConflict: 'user_id' });
+
+      if (error) throw error;
+
+      // Notify parent to refresh saved matches
+      onMatchSaved?.();
+    } catch (error) {
+      console.error('Error saving match results:', error);
+    }
+  };
 
   const handleMatchTrials = async () => {
     if (!profileData) return;
@@ -54,6 +104,9 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData }: AIMatchDialog
       if (error) throw error;
 
       setMatchResults(data);
+
+      // Save the match results
+      await saveMatchResults(data);
 
       if (data.matches && data.matches.length > 0) {
         toast({
@@ -92,16 +145,27 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData }: AIMatchDialog
         </DialogHeader>
 
         <div className="space-y-6">
+          {!canRematch && !profileChanged && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                You already have saved match results. Update your profile information to run AI matching again.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {!matchResults && (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-6">
-                Click the button below to match your profile against available clinical trials
+                {savedMatches 
+                  ? "Update your profile to run a new AI match" 
+                  : "Click the button below to match your profile against available clinical trials"}
               </p>
               <Button 
                 variant="hero" 
                 size="lg"
                 onClick={handleMatchTrials}
-                disabled={matching || !profileData}
+                disabled={matching || !profileData || !canRematch}
               >
                 {matching ? (
                   <>
@@ -111,7 +175,7 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData }: AIMatchDialog
                 ) : (
                   <>
                     <Sparkles className="h-5 w-5 mr-2" />
-                    Start AI Matching
+                    {savedMatches ? 'Re-run AI Matching' : 'Start AI Matching'}
                   </>
                 )}
               </Button>
@@ -182,7 +246,17 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData }: AIMatchDialog
                 </Card>
               ))}
 
-              <div className="flex justify-center pt-4">
+              <div className="flex justify-center gap-4 pt-4">
+                {canRematch && profileChanged && (
+                  <Button 
+                    variant="hero"
+                    onClick={handleMatchTrials}
+                    disabled={matching}
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Re-run Match with Updated Profile
+                  </Button>
+                )}
                 <Button 
                   variant="outline"
                   onClick={() => {
