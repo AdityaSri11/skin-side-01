@@ -32,14 +32,17 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
       const hasChanges = JSON.stringify(profileData) !== JSON.stringify(profileSnapshot);
       setProfileChanged(hasChanges);
       setCanRematch(hasChanges);
+      
+      // Show saved matches only if profile hasn't changed
+      if (!hasChanges && !matchResults) {
+        setMatchResults(savedMatches.match_data);
+      } else if (hasChanges) {
+        // Clear match results if profile changed to force re-run
+        setMatchResults(null);
+      }
     } else {
       setCanRematch(true);
       setProfileChanged(false);
-    }
-    
-    // Show saved matches when dialog opens
-    if (savedMatches && !matchResults) {
-      setMatchResults(savedMatches.match_data);
     }
   }, [savedMatches, profileData, open]);
 
