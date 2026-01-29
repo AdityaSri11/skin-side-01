@@ -1,7 +1,7 @@
-/* test add right now 
+// test add right now 
 import { Link } from "react-router-dom"; 
 import logo from "@/assets/logo.png";     
-*/
+//
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -112,12 +112,22 @@ const DoctorDashboard = () => {
       <div className="container max-w-7xl">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
-              <Stethoscope className="h-8 w-8 text-primary" />
-              Doctor Dashboard
-            </h1>
-            <p className="text-muted-foreground">Welcome back, {doctorName}</p>
+          <div className="flex items-center gap-4">
+            {/* This is the logo that takes you home */}
+            <Link to="/" className="transition-opacity hover:opacity-80">
+              <img 
+                src={logo} 
+                alt="SkinSide Logo" 
+                className="w-12 h-12 rounded-xl object-cover"
+              />
+            </Link>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-0 flex items-center gap-2">
+                <Stethoscope className="h-8 w-8 text-primary" />
+                Doctor Dashboard
+              </h1>
+              <p className="text-muted-foreground">Welcome back, {doctorName}</p>
+            </div>
           </div>
           <Button variant="outline" onClick={handleSignOut} className="text-destructive hover:text-destructive">
             <LogOut className="h-4 w-4 mr-2" />
