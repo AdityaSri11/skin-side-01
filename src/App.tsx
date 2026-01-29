@@ -32,7 +32,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 0, // Always refetch on mount
+      gcTime: 0, // Don't cache (formerly cacheTime)
+      refetchOnMount: 'always',
+      refetchOnWindowFocus: true,
+    },
+  },
+});
 
 const AppContent = () => {
   // Auto sign out when tab closes (WARNING: Creates poor UX)
@@ -86,6 +95,8 @@ const AppContent = () => {
         
         if (profile) {
           setProfileData(profile);
+        } else {
+          setProfileData(null);
         }
 
         // Fetch saved AI match results
@@ -98,10 +109,30 @@ const AppContent = () => {
       }
     };
 
+    // Clear state on mount to ensure fresh data
+    setProfileData(null);
+    setSavedMatches(null);
+    setUserRole(null);
+    
     fetchProfile();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      fetchProfile();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') {
+        // Clear and refetch on sign in
+        setProfileData(null);
+        setSavedMatches(null);
+        setUserRole(null);
+        queryClient.clear();
+        setTimeout(() => fetchProfile(), 0);
+      } else if (event === 'SIGNED_OUT') {
+        setIsAuthenticated(false);
+        setProfileData(null);
+        setUserRole(null);
+        setSavedMatches(null);
+        queryClient.clear();
+      } else {
+        fetchProfile();
+      }
     });
 
     return () => subscription.unsubscribe();
