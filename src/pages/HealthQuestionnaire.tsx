@@ -11,10 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from '@supabase/supabase-js';
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { DateInput } from "@/components/ui/date-input";
 import { cn } from "@/lib/utils";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 
@@ -239,30 +236,12 @@ const HealthQuestionnaire = () => {
             </div>
             <div className="space-y-2">
               <Label>Date of Birth *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.date_of_birth && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.date_of_birth ? format(formData.date_of_birth, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-background border border-border z-50">
-                  <Calendar
-                    mode="single"
-                    selected={formData.date_of_birth}
-                    onSelect={(date) => handleInputChange('date_of_birth', date)}
-                    disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                    initialFocus
-                    className="p-3 pointer-events-auto bg-background"
-                  />
-                </PopoverContent>
-              </Popover>
+              <DateInput
+                value={formData.date_of_birth}
+                onChange={(date) => handleInputChange('date_of_birth', date)}
+                minYear={1900}
+                maxDate={new Date()}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="gender">Gender *</Label>
@@ -464,30 +443,12 @@ const HealthQuestionnaire = () => {
             </div>
             <div className="space-y-2">
               <Label>Date of Diagnosis</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.date_of_diagnosis && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.date_of_diagnosis ? format(formData.date_of_diagnosis, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-background border border-border z-50">
-                  <Calendar
-                    mode="single"
-                    selected={formData.date_of_diagnosis}
-                    onSelect={(date) => handleInputChange('date_of_diagnosis', date)}
-                    disabled={(date) => date > new Date()}
-                    initialFocus
-                    className="p-3 pointer-events-auto bg-background"
-                  />
-                </PopoverContent>
-              </Popover>
+              <DateInput
+                value={formData.date_of_diagnosis}
+                onChange={(date) => handleInputChange('date_of_diagnosis', date)}
+                minYear={1900}
+                maxDate={new Date()}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="recent_test_results">Most Recent Test Results (PDF Upload)</Label>
