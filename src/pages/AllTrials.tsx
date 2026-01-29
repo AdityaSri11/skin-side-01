@@ -129,24 +129,6 @@ const AllTrials = () => {
           </div>
         )}
 
-        {/* Call to Action */}
-        <div className="mt-12 text-center">
-          <Card variant="soft">
-            <CardContent className="p-8">
-              <h2 className="text-2xl font-bold text-foreground mb-4">
-                Don't See a Match?
-              </h2>
-              <p className="text-muted-foreground mb-6">
-                Take our questionnaire to get personalized trial recommendations based on your specific condition and preferences.
-              </p>
-              <Link to="/questionnaire">
-                <Button variant="healthcare" size="lg">
-                  Take Questionnaire
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );

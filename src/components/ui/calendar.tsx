@@ -90,7 +90,7 @@ function Calendar({
                 <SelectTrigger className="w-[110px] h-8">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-background">
+                <SelectContent className="bg-background border border-border z-[100] pointer-events-auto">
                   {months.map((month) => (
                     <SelectItem key={month} value={month}>
                       {month}
@@ -102,7 +102,7 @@ function Calendar({
                 <SelectTrigger className="w-[80px] h-8">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-background max-h-[200px]">
+                <SelectContent className="bg-background border border-border max-h-[200px] z-[100] pointer-events-auto">
                   {years.map((year) => (
                     <SelectItem key={year} value={year.toString()}>
                       {year}
