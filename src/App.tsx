@@ -82,10 +82,10 @@ const AppContent = () => {
         
         setUserRole(roleData?.role || null);
 
-        // Redirect doctors to dashboard
-        if (roleData?.role === 'doctor' && window.location.pathname === '/') {
-          navigate('/doctor-dashboard');
-        }
+        // // Redirect doctors to dashboard
+        // if (roleData?.role === 'doctor' && window.location.pathname === '/') {
+        //   navigate('/doctor-dashboard');
+        // }
 
         const { data: profile } = await supabase
           .from('user_profiles')
