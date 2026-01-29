@@ -430,7 +430,7 @@ const HealthQuestionnaire = () => {
                   <SelectItem value="psoriasis">Psoriasis</SelectItem>
                   <SelectItem value="eczema">Eczema</SelectItem>
                   <SelectItem value="acne">Acne</SelectItem>
-                  <SelectItem value="hidradenitis">Hidradenitis</SelectItem>
+                  <SelectItem value="hidradenitis">Hidradenitis Suppurativa</SelectItem>
                   <SelectItem value="melanoma">Melanoma</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
