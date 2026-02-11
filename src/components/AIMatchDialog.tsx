@@ -203,16 +203,18 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
                       </Badge>
                     </div>
                     <div className="space-y-4">
-                      <div>
-                        <Label className="text-sm font-semibold text-muted-foreground">Match Reasons:</Label>
-                        <ul className="list-disc list-inside space-y-2 mt-2">
-                          {match.matchReasons.map((reason: string, i: number) => (
-                            <li key={i} className="text-foreground">
-                              <MedicalTermTooltip text={reason} />
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                      {match.matchReasons && match.matchReasons.length > 0 && (
+                        <div>
+                          <Label className="text-sm font-semibold text-muted-foreground">Match Reasons:</Label>
+                          <ul className="list-disc list-inside space-y-2 mt-2">
+                            {match.matchReasons.map((reason: string, i: number) => (
+                              <li key={i} className="text-foreground">
+                                <MedicalTermTooltip text={reason} />
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                       {match.concerns && match.concerns.length > 0 && (
                         <div>
                           <Label className="text-sm font-semibold text-muted-foreground">Considerations:</Label>
