@@ -192,10 +192,28 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
                 <Card key={idx} variant="soft">
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start mb-4">
-                      <h4 className="text-lg font-semibold">Trial {match.trialNumber}</h4>
+                      <h4 className="text-lg font-semibold">{match.trialName || `Trial ${match.trialNumber}`}</h4>
                       <Badge variant={match.matchScore >= 80 ? "default" : "secondary"} className="text-base px-3 py-1">
                         {match.matchScore}% Match
                       </Badge>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4 text-sm">
+                      <div>
+                        <Label className="text-xs font-semibold text-muted-foreground">Trial Number</Label>
+                        <p className="text-foreground">{match.trialNumber}</p>
+                      </div>
+                      {match.product && (
+                        <div>
+                          <Label className="text-xs font-semibold text-muted-foreground">Product</Label>
+                          <p className="text-foreground">{match.product}</p>
+                        </div>
+                      )}
+                      {match.sponsor && (
+                        <div>
+                          <Label className="text-xs font-semibold text-muted-foreground">Sponsor</Label>
+                          <p className="text-foreground">{match.sponsor}</p>
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-4">
                       {match.matchReasons && match.matchReasons.length > 0 && (
@@ -238,7 +256,7 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
                             window.open(`/trial/${encodeURIComponent(match.trialNumber)}`, '_blank');
                           }}
                         >
-                          Learn More About This Trial
+                          View All Details
                         </Button>
                       </div>
                     </div>

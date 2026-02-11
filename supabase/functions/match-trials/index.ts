@@ -81,6 +81,9 @@ serve(async (req) => {
         "matches": [
           {
             "trialNumber": "Trial Number from list",
+            "trialName": "Short descriptive name of the trial based on its description/conditions",
+            "product": "The product being tested (from the trial data)",
+            "sponsor": "The sponsor of the trial (from the trial data)",
             "matchScore": 85,
             "matchReasons": ["Meets age and condition criteria.", "Trial is currently recruiting."],
             "concerns": ["Patient is on an exclusionary medication."],
