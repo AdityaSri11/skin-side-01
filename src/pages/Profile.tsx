@@ -580,14 +580,26 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                                 </Badge>
                               </div>
                               <div className="space-y-4">
-                                <div>
-                                  <Label className="text-sm font-semibold text-muted-foreground">Match Reasons:</Label>
-                                  <ul className="list-disc list-inside space-y-1 mt-2">
-                                    {match.matchReasons.map((reason: string, i: number) => (
-                                      <li key={i} className="text-foreground text-sm">{reason}</li>
-                                    ))}
-                                  </ul>
-                                </div>
+                                {match.matchReasons && match.matchReasons.length > 0 && (
+                                  <div>
+                                    <Label className="text-sm font-semibold text-muted-foreground">Match Reasons:</Label>
+                                    <ul className="list-disc list-inside space-y-1 mt-2">
+                                      {match.matchReasons.map((reason: string, i: number) => (
+                                        <li key={i} className="text-foreground text-sm">{reason}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                                {match.concerns && match.concerns.length > 0 && (
+                                  <div>
+                                    <Label className="text-sm font-semibold text-muted-foreground">Considerations:</Label>
+                                    <ul className="list-disc list-inside space-y-1 mt-2">
+                                      {match.concerns.map((concern: string, i: number) => (
+                                        <li key={i} className="text-orange-600 text-sm">{concern}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
                                 {match.recommendation && (
                                   <div>
                                     <Label className="text-sm font-semibold text-muted-foreground">Recommendation:</Label>
@@ -595,7 +607,7 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                                   </div>
                                 )}
                                 <div className="pt-2">
-                                  <Link to={`/trial/${encodeURIComponent(match.trialNumber)}`} target="_blank">
+                                  <Link to={`/trial/${encodeURIComponent(match.trialNumber)}`}>
                                     <Button variant="default" className="w-full">
                                       View Trial Details
                                     </Button>
