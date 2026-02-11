@@ -74,7 +74,7 @@ const Header = ({ onAIMatchClick }: HeaderProps) => {
           <Link to="/profile" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             My Profile
           </Link>
-          {userRole !== 'doctor' && (
+          {!user && (
             <Link to="/doctor-auth">
               <Button variant="outline" size="sm">
                 Doctor Login

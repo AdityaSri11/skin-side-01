@@ -33,12 +33,9 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
       setProfileChanged(hasChanges);
       setCanRematch(hasChanges);
       
-      // Show saved matches only if profile hasn't changed
-      if (!hasChanges && !matchResults) {
+      // Always show saved matches when dialog opens
+      if (!matchResults) {
         setMatchResults(savedMatches.match_data);
-      } else if (hasChanges) {
-        // Clear match results if profile changed to force re-run
-        setMatchResults(null);
       }
     } else {
       setCanRematch(true);
@@ -160,15 +157,13 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
           {!matchResults && (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-6">
-                {savedMatches 
-                  ? "Update your profile to run a new AI match" 
-                  : "Click the button below to match your profile against available clinical trials"}
+                Click the button below to match your profile against available clinical trials
               </p>
               <Button 
                 variant="hero" 
                 size="lg"
                 onClick={handleMatchTrials}
-                disabled={matching || !profileData || !canRematch}
+                disabled={matching || !profileData}
               >
                 {matching ? (
                   <>
@@ -178,7 +173,7 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
                 ) : (
                   <>
                     <Sparkles className="h-5 w-5 mr-2" />
-                    {savedMatches ? 'Re-run AI Matching' : 'Start AI Matching'}
+                    Start AI Matching
                   </>
                 )}
               </Button>
@@ -252,16 +247,23 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
               ))}
 
               <div className="flex justify-center gap-4 pt-4">
-                {canRematch && profileChanged && (
-                  <Button 
-                    variant="hero"
-                    onClick={handleMatchTrials}
-                    disabled={matching}
-                  >
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Re-run Match with Updated Profile
-                  </Button>
-                )}
+                <Button 
+                  variant="hero"
+                  onClick={handleMatchTrials}
+                  disabled={matching}
+                >
+                  {matching ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Re-run AI Matching
+                    </>
+                  )}
+                </Button>
                 <Button 
                   variant="outline"
                   onClick={() => {
