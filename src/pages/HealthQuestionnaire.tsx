@@ -94,13 +94,13 @@ const HealthQuestionnaire = () => {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
         navigate('/auth');
         return;
       }
-      setUser(session.user);
-      setFormData(prev => ({ ...prev, email_address: session.user.email || "" }));
+      setUser(currentUser);
+      setFormData(prev => ({ ...prev, email_address: currentUser.email || "" }));
     };
 
     checkUser();
@@ -144,7 +144,17 @@ const HealthQuestionnaire = () => {
   };
 
   const handleSubmit = async () => {
-    if (!user) return;
+    // Re-validate the user server-side before submitting
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) {
+      toast({
+        title: "Session Expired",
+        description: "Please sign in again to continue.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
 
     setLoading(true);
     
@@ -153,7 +163,7 @@ const HealthQuestionnaire = () => {
     // Upload PDF if one was selected
     if (formData.recent_test_results) {
       const fileExt = formData.recent_test_results.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${currentUser.id}/${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('derm_test_results')
@@ -176,19 +186,20 @@ const HealthQuestionnaire = () => {
     const { recent_test_results: _, other_condition, ...cleanFormData } = formData;
     
     const profileData = {
-      user_id: user.id,
+      user_id: currentUser.id,
       ...cleanFormData,
       date_of_birth: formData.date_of_birth?.toISOString().split('T')[0],
-      date_of_diagnosis: formData.date_of_diagnosis?.toISOString().split('T')[0],
+      date_of_diagnosis: formData.date_of_diagnosis?.toISOString().split('T')[0] || null,
       recent_test_results: testResultsPath,
     };
 
+    // Use upsert to handle cases where a partial profile may already exist
     const { error } = await supabase
       .from('user_profiles')
-      .insert(profileData);
+      .upsert(profileData, { onConflict: 'user_id' });
 
     if (error) {
-      console.error('Profile insert error:', error);
+      console.error('Profile save error:', error);
       toast({
         title: "Error",
         description: `Failed to save your information: ${error.message}`,
