@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from '@supabase/supabase-js';
 import { format } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
+import { useTrialLookup } from "@/hooks/useTrialLookup";
 
 interface ProfileProps {
   onAIMatchClick?: () => void;
@@ -36,6 +37,13 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
   const [savedMatches, setSavedMatches] = useState<any>(propSavedMatches);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const profileTrialNumbers = useMemo(() => {
+    const matches = savedMatches?.match_data?.matches || [];
+    return matches.map((m: any) => m.trialNumber).filter(Boolean);
+  }, [savedMatches]);
+
+  const { trialDetails: profileTrialDetails } = useTrialLookup(profileTrialNumbers);
 
   // Update local state when prop changes
   useEffect(() => {
@@ -570,30 +578,37 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                           </p>
                         </div>
 
-                        {savedMatches.match_data.matches.map((match: any, idx: number) => (
+                        {savedMatches.match_data.matches.map((match: any, idx: number) => {
+                          const dbTrial = profileTrialDetails[match.trialNumber];
+                          const trialName = dbTrial?.Description || match.trialName || `Trial ${match.trialNumber}`;
+                          const trialNumber = match.trialNumber;
+                          const product = dbTrial?.Product || match.product || null;
+                          const sponsor = dbTrial?.Sponsor || match.sponsor || null;
+
+                          return (
                           <Card key={idx} variant="soft">
                             <CardContent className="p-6">
                               <div className="flex justify-between items-start mb-4">
-                                <h4 className="text-lg font-semibold">{match.trialName || `Trial ${match.trialNumber}`}</h4>
-                                <Badge variant={match.matchScore >= 80 ? "default" : "secondary"} className="text-base px-3 py-1">
+                                <h4 className="text-lg font-semibold">{trialName}</h4>
+                                <Badge variant={match.matchScore >= 80 ? "default" : "secondary"} className="text-base px-3 py-1 shrink-0 ml-3">
                                   {match.matchScore}% Match
                                 </Badge>
                               </div>
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4 text-sm">
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 text-sm bg-muted/50 rounded-lg p-3">
                                 <div>
-                                  <Label className="text-xs font-semibold text-muted-foreground">Trial Number</Label>
-                                  <p className="text-foreground">{match.trialNumber}</p>
+                                  <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Trial Number</Label>
+                                  <p className="text-foreground font-medium">{trialNumber}</p>
                                 </div>
-                                {match.product && (
+                                {product && (
                                   <div>
-                                    <Label className="text-xs font-semibold text-muted-foreground">Product</Label>
-                                    <p className="text-foreground">{match.product}</p>
+                                    <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Product</Label>
+                                    <p className="text-foreground font-medium">{product}</p>
                                   </div>
                                 )}
-                                {match.sponsor && (
+                                {sponsor && (
                                   <div>
-                                    <Label className="text-xs font-semibold text-muted-foreground">Sponsor</Label>
-                                    <p className="text-foreground">{match.sponsor}</p>
+                                    <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Sponsor</Label>
+                                    <p className="text-foreground font-medium">{sponsor}</p>
                                   </div>
                                 )}
                               </div>
@@ -625,7 +640,7 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                                   </div>
                                 )}
                                 <div className="pt-2">
-                                  <Link to={`/trial/${encodeURIComponent(match.trialNumber)}`}>
+                                  <Link to={`/trial/${encodeURIComponent(trialNumber)}`}>
                                     <Button variant="default" className="w-full">
                                       View All Details
                                     </Button>
@@ -634,7 +649,8 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                               </div>
                             </CardContent>
                           </Card>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="text-center py-12">
