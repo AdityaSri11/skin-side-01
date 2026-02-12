@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { MedicalTermTooltip } from "@/components/MedicalTermTooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTrialLookup } from "@/hooks/useTrialLookup";
 
 interface AIMatchDialogProps {
   open: boolean;
@@ -25,15 +26,20 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
   const [profileChanged, setProfileChanged] = useState(false);
   const { toast } = useToast();
 
+  const trialNumbers = useMemo(() => {
+    const matches = matchResults?.matches || [];
+    return matches.map((m: any) => m.trialNumber).filter(Boolean);
+  }, [matchResults]);
+
+  const { trialDetails, loading: trialLoading } = useTrialLookup(trialNumbers);
+
   useEffect(() => {
-    // Check if profile has changed since last match
     if (savedMatches && profileData) {
       const profileSnapshot = savedMatches.profile_snapshot;
       const hasChanges = JSON.stringify(profileData) !== JSON.stringify(profileSnapshot);
       setProfileChanged(hasChanges);
       setCanRematch(hasChanges);
       
-      // Always show saved matches when dialog opens
       if (!matchResults) {
         setMatchResults(savedMatches.match_data);
       }
@@ -56,14 +62,11 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
         profile_snapshot: profileData,
       };
 
-      // Use upsert to insert or update
       const { error } = await supabase
         .from('ai_match_results')
         .upsert(matchData, { onConflict: 'user_id' });
 
       if (error) throw error;
-
-      // Notify parent to refresh saved matches
       onMatchSaved?.();
     } catch (error) {
       console.error('Error saving match results:', error);
@@ -77,7 +80,6 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
     setMatchResults(null);
 
     try {
-      // Fetch all trials from database
       const { data: trials, error: trialsError } = await supabase
         .from('derm')
         .select('*');
@@ -93,7 +95,6 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
         return;
       }
 
-      // Call the matching edge function
       const { data, error } = await supabase.functions.invoke('match-trials', {
         body: {
           userProfile: profileData,
@@ -104,8 +105,6 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
       if (error) throw error;
 
       setMatchResults(data);
-
-      // Save the match results
       await saveMatchResults(data);
 
       if (data.matches && data.matches.length > 0) {
@@ -188,81 +187,89 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
                 </p>
               </div>
 
-              {matchResults.matches.map((match: any, idx: number) => (
-                <Card key={idx} variant="soft">
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <h4 className="text-lg font-semibold">{match.trialName || `Trial ${match.trialNumber}`}</h4>
-                      <Badge variant={match.matchScore >= 80 ? "default" : "secondary"} className="text-base px-3 py-1">
-                        {match.matchScore}% Match
-                      </Badge>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4 text-sm">
-                      <div>
-                        <Label className="text-xs font-semibold text-muted-foreground">Trial Number</Label>
-                        <p className="text-foreground">{match.trialNumber}</p>
+              {matchResults.matches.map((match: any, idx: number) => {
+                const dbTrial = trialDetails[match.trialNumber];
+                const trialName = dbTrial?.Description || match.trialName || `Trial ${match.trialNumber}`;
+                const trialNumber = match.trialNumber;
+                const product = dbTrial?.Product || match.product || null;
+                const sponsor = dbTrial?.Sponsor || match.sponsor || null;
+
+                return (
+                  <Card key={idx} variant="soft">
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <h4 className="text-lg font-semibold">{trialName}</h4>
+                        <Badge variant={match.matchScore >= 80 ? "default" : "secondary"} className="text-base px-3 py-1 shrink-0 ml-3">
+                          {match.matchScore}% Match
+                        </Badge>
                       </div>
-                      {match.product && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 text-sm bg-muted/50 rounded-lg p-3">
                         <div>
-                          <Label className="text-xs font-semibold text-muted-foreground">Product</Label>
-                          <p className="text-foreground">{match.product}</p>
+                          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Trial Number</Label>
+                          <p className="text-foreground font-medium">{trialNumber}</p>
                         </div>
-                      )}
-                      {match.sponsor && (
-                        <div>
-                          <Label className="text-xs font-semibold text-muted-foreground">Sponsor</Label>
-                          <p className="text-foreground">{match.sponsor}</p>
-                        </div>
-                      )}
-                    </div>
-                    <div className="space-y-4">
-                      {match.matchReasons && match.matchReasons.length > 0 && (
-                        <div>
-                          <Label className="text-sm font-semibold text-muted-foreground">Match Reasons:</Label>
-                          <ul className="list-disc list-inside space-y-2 mt-2">
-                            {match.matchReasons.map((reason: string, i: number) => (
-                              <li key={i} className="text-foreground">
-                                <MedicalTermTooltip text={reason} />
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {match.concerns && match.concerns.length > 0 && (
-                        <div>
-                          <Label className="text-sm font-semibold text-muted-foreground">Considerations:</Label>
-                          <ul className="list-disc list-inside space-y-2 mt-2">
-                            {match.concerns.map((concern: string, i: number) => (
-                              <li key={i} className="text-orange-600">
-                                <MedicalTermTooltip text={concern} />
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {match.recommendation && (
-                        <div>
-                          <Label className="text-sm font-semibold text-muted-foreground">Recommendation:</Label>
-                          <p className="text-foreground mt-2 leading-relaxed">
-                            <MedicalTermTooltip text={match.recommendation} />
-                          </p>
-                        </div>
-                      )}
-                      <div className="pt-2">
-                        <Button 
-                          variant="default" 
-                          className="w-full"
-                          onClick={() => {
-                            window.open(`/trial/${encodeURIComponent(match.trialNumber)}`, '_blank');
-                          }}
-                        >
-                          View All Details
-                        </Button>
+                        {product && (
+                          <div>
+                            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Product</Label>
+                            <p className="text-foreground font-medium">{product}</p>
+                          </div>
+                        )}
+                        {sponsor && (
+                          <div>
+                            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Sponsor</Label>
+                            <p className="text-foreground font-medium">{sponsor}</p>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <div className="space-y-4">
+                        {match.matchReasons && match.matchReasons.length > 0 && (
+                          <div>
+                            <Label className="text-sm font-semibold text-muted-foreground">Match Reasons:</Label>
+                            <ul className="list-disc list-inside space-y-2 mt-2">
+                              {match.matchReasons.map((reason: string, i: number) => (
+                                <li key={i} className="text-foreground">
+                                  <MedicalTermTooltip text={reason} />
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {match.concerns && match.concerns.length > 0 && (
+                          <div>
+                            <Label className="text-sm font-semibold text-muted-foreground">Considerations:</Label>
+                            <ul className="list-disc list-inside space-y-2 mt-2">
+                              {match.concerns.map((concern: string, i: number) => (
+                                <li key={i} className="text-orange-600">
+                                  <MedicalTermTooltip text={concern} />
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {match.recommendation && (
+                          <div>
+                            <Label className="text-sm font-semibold text-muted-foreground">Recommendation:</Label>
+                            <p className="text-foreground mt-2 leading-relaxed">
+                              <MedicalTermTooltip text={match.recommendation} />
+                            </p>
+                          </div>
+                        )}
+                        <div className="pt-2">
+                          <Button 
+                            variant="default" 
+                            className="w-full"
+                            onClick={() => {
+                              window.open(`/trial/${encodeURIComponent(trialNumber)}`, '_blank');
+                            }}
+                          >
+                            View All Details
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
 
               <div className="flex justify-center gap-4 pt-4">
                 <Button 
