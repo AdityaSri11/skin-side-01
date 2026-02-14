@@ -202,6 +202,47 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_user_profile_secure: {
+        Args: { _user_id: string; profile: Json }
+        Returns: {
+          address: string | null
+          alcohol_intake: string | null
+          allergies: string | null
+          condition_stage_severity: string | null
+          created_at: string
+          current_prescription_medications: string | null
+          date_of_birth: string
+          date_of_diagnosis: string | null
+          email_address: string
+          existing_medical_conditions: string | null
+          first_name: string
+          gender: string | null
+          id: string
+          immunization_status: string | null
+          last_name: string
+          other_substances: string | null
+          over_counter_medications: string | null
+          phone_number: string | null
+          pregnant_breastfeeding: string | null
+          previous_medical_conditions: string | null
+          previous_surgical_history: string | null
+          primary_condition: string | null
+          prior_clinical_trials: string | null
+          recent_medication_changes: string | null
+          recent_test_results: string | null
+          smoke_history: string | null
+          travel_distance: string | null
+          treatments_for_condition: string | null
+          updated_at: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "user_profiles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

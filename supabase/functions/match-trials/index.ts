@@ -168,12 +168,12 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    // Catch all major operational errors (e.g., key missing, network errors)
-    console.error('Critical error in server function:', error);
-    return new Response(
-      JSON.stringify({ error: error.message || 'An unknown internal server error occurred.' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
+  } catch (error: unknown) {
+    // Catch all major operational errors (e.g., key missing, network errors)
+    console.error('Critical error in server function:', error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : 'An unknown internal server error occurred.' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
 });
