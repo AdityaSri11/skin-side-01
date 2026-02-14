@@ -85,7 +85,7 @@ export type Database = {
           condition_stage_severity: string | null
           created_at: string
           current_prescription_medications: string | null
-          date_of_birth: string
+          date_of_birth: string | null
           date_of_diagnosis: string | null
           email_address: string
           existing_medical_conditions: string | null
@@ -117,15 +117,15 @@ export type Database = {
           condition_stage_severity?: string | null
           created_at?: string
           current_prescription_medications?: string | null
-          date_of_birth: string
+          date_of_birth?: string | null
           date_of_diagnosis?: string | null
-          email_address: string
+          email_address?: string
           existing_medical_conditions?: string | null
-          first_name: string
+          first_name?: string
           gender?: string | null
           id?: string
           immunization_status?: string | null
-          last_name: string
+          last_name?: string
           other_substances?: string | null
           over_counter_medications?: string | null
           phone_number?: string | null
@@ -149,7 +149,7 @@ export type Database = {
           condition_stage_severity?: string | null
           created_at?: string
           current_prescription_medications?: string | null
-          date_of_birth?: string
+          date_of_birth?: string | null
           date_of_diagnosis?: string | null
           email_address?: string
           existing_medical_conditions?: string | null
@@ -211,7 +211,7 @@ export type Database = {
           condition_stage_severity: string | null
           created_at: string
           current_prescription_medications: string | null
-          date_of_birth: string
+          date_of_birth: string | null
           date_of_diagnosis: string | null
           email_address: string
           existing_medical_conditions: string | null
