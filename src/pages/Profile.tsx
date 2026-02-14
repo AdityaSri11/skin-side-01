@@ -726,18 +726,18 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                             <Bell className="h-4 w-4 mr-2" />
                             Notification Preferences
                           </Button> */}
-                          <div className="flex items-center justify-between w-full rounded-md border border-input bg-transparent px-3 py-2">
-                              <div className="flex items-center">
-                                <Bell className="h-4 w-4 mr-2 text-muted-foreground" />
-                                <span className="text-sm font-medium">Notifications</span>
-                              </div>
-                              <Switch 
-                                id="notifications"
-                                checked={notificationsEnabled}
-                                onCheckedChange={setNotificationsEnabled}
-                                className="data-[state=checked]:bg-primary" 
-                              />
+                          <Button variant="outline" className="w-full justify-between px-3 cursor-default hover:bg-transparent">
+                            <div className="flex items-center">
+                              <Bell className="h-4 w-4 mr-2 text-muted-foreground" />
+                              <span className="text-sm font-medium">Notifications</span>
                             </div>
+                            <Switch 
+                              id="notifications"
+                              checked={notificationsEnabled}
+                              onCheckedChange={setNotificationsEnabled}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </Button>
                           <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive" onClick={handleSignOut}>
                             <LogOut className="h-4 w-4 mr-2" />
                             Sign Out
