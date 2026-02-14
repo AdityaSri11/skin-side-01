@@ -734,7 +734,7 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                 </Card>
 
                 {/* Support Section */}
-                <Card variant="healing">
+                {/* <Card variant="healing">
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <MessageCircle className="h-5 w-5 mr-2" />
@@ -755,7 +755,7 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                       </Button>
                     </div>
                   </CardContent>
-                </Card>
+                </Card> */}
               </TabsContent>
             </Tabs>
           </div>
