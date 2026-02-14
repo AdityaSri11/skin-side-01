@@ -315,10 +315,10 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                   <Sparkles className="h-4 w-4 mr-2" />
                   AI Match Trials
                 </Button>
-                <Button variant="ghost" size="sm" className="w-full justify-start">
+                {/* <Button variant="ghost" size="sm" className="w-full justify-start">
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Chat with Support
-                </Button>
+                </Button> */}
                 <Button variant="ghost" size="sm" className="w-full justify-start">
                   <Settings className="h-4 w-4 mr-2" />
                   Privacy Settings
