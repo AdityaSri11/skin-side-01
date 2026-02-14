@@ -735,6 +735,7 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                               id="notifications" 
                               checked={notificationsEnabled}
                               onCheckedChange={setNotificationsEnabled}
+                              className="data-[state=checked]:bg-primary"
                             />
                           </div>
                           <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive" onClick={handleSignOut}>
