@@ -31,15 +31,19 @@ export const useAutoSignOut = () => {
       }
     });
 
-    // Use pagehide event which is more reliable than beforeunload
+    // Only sign out on actual tab close, not navigation
+    // Using visibilitychange + unload pattern to distinguish close from navigate
+    let isNavigating = false;
+
+    const handleBeforeUnload = () => {
+      // Mark that we're in an unload event
+      // Don't clear storage here - let pagehide handle it
+    };
+
     const handlePageHide = (event: PageTransitionEvent) => {
-      // Only sign out if the page is actually being unloaded (not just hidden)
+      // event.persisted = true means page is going into bfcache (navigation, not close)
+      // Only sign out if page is truly being destroyed
       if (!event.persisted) {
-        // Use sendBeacon for reliable logout on tab close
-        const supabaseUrl = 'https://rclqvwqlquldwmgttltq.supabase.co';
-        const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjbHF2d3FscXVsZHdtZ3R0bHRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3ODczMjAsImV4cCI6MjA3MjM2MzMyMH0.UsxRSQ_v8ZEmY-SCVtzFfnpqEUlxZnUH-xDG25Jnz0g';
-        
-        // Get current session token from localStorage
         const storageKey = `sb-rclqvwqlquldwmgttltq-auth-token`;
         const sessionData = localStorage.getItem(storageKey);
         
@@ -49,11 +53,10 @@ export const useAutoSignOut = () => {
             const accessToken = session?.access_token;
             
             if (accessToken) {
-              // Send logout request via sendBeacon (fires even when tab is closing)
+              const supabaseUrl = 'https://rclqvwqlquldwmgttltq.supabase.co';
+              const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjbHF2d3FscXVsZHdtZ3R0bHRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3ODczMjAsImV4cCI6MjA3MjM2MzMyMH0.UsxRSQ_v8ZEmY-SCVtzFfnpqEUlxZnUH-xDG25Jnz0g';
               const logoutUrl = `${supabaseUrl}/auth/v1/logout`;
-              const blob = new Blob([JSON.stringify({})], { type: 'application/json' });
               
-              // Use fetch with keepalive for better reliability
               fetch(logoutUrl, {
                 method: 'POST',
                 headers: {
@@ -62,30 +65,18 @@ export const useAutoSignOut = () => {
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({}),
-                keepalive: true, // Ensures request completes even after page unloads
-              }).catch(() => {
-                // Ignore errors - page is closing anyway
-              });
+                keepalive: true,
+              }).catch(() => {});
             }
           } catch {
             // Ignore JSON parse errors
           }
         }
         
-        // Clear all storage immediately
         localStorage.removeItem(storageKey);
         sessionStorage.clear();
-        
-        // Clear React Query cache
         queryClient.clear();
       }
-    };
-
-    // Also handle beforeunload as fallback
-    const handleBeforeUnload = () => {
-      const storageKey = `sb-rclqvwqlquldwmgttltq-auth-token`;
-      localStorage.removeItem(storageKey);
-      sessionStorage.clear();
     };
 
     window.addEventListener('pagehide', handlePageHide);

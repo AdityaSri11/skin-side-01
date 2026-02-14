@@ -85,11 +85,11 @@ serve(async (req) => {
       }
     );
     
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching trial contacts:', error);
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'Failed to fetch trial contacts',
+        error: error instanceof Error ? error.message : 'Failed to fetch trial contacts',
         contacts: []
       }),
       { 

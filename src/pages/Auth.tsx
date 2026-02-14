@@ -60,11 +60,12 @@ const Auth = () => {
   const checkUserProfile = async (user: any) => {
     const { data: profile } = await supabase
       .from('user_profiles')
-      .select('id')
+      .select('first_name')
       .eq('user_id', user.id)
       .single();
     
-    if (profile) {
+    // Only redirect to home if profile exists AND is complete (has first_name)
+    if (profile && profile.first_name) {
       navigate('/');
     } else {
       navigate('/health-questionnaire');
