@@ -18,6 +18,7 @@ import { User } from '@supabase/supabase-js';
 import { format } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
 import { useTrialLookup } from "@/hooks/useTrialLookup";
+import { Switch } from "@/components/ui/switch"; 
 
 interface ProfileProps {
   onAIMatchClick?: () => void;
@@ -37,6 +38,8 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
   const [savedMatches, setSavedMatches] = useState<any>(propSavedMatches);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const profileTrialNumbers = useMemo(() => {
     const matches = savedMatches?.match_data?.matches || [];
@@ -323,10 +326,10 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                   <Settings className="h-4 w-4 mr-2" />
                   Privacy Settings
                 </Button>
-                <Button variant="ghost" size="sm" className="w-full justify-start">
+                {/* <Button variant="ghost" size="sm" className="w-full justify-start">
                   <Bell className="h-4 w-4 mr-2" />
                   Notification Preferences
-                </Button>
+                </Button> */}
               </CardContent>
             </Card>
 
@@ -719,10 +722,21 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                             <Settings className="h-4 w-4 mr-2" />
                             Privacy Settings
                           </Button>
-                          <Button variant="outline" className="w-full justify-start">
+                          {/* <Button variant="outline" className="w-full justify-start">
                             <Bell className="h-4 w-4 mr-2" />
                             Notification Preferences
-                          </Button>
+                          </Button> */}
+                          <div className="flex items-center justify-between space-x-2 rounded-lg border p-3 shadow-sm">
+                            <div className="flex items-center space-x-2">
+                              <Bell className="h-4 w-4 text-muted-foreground" />
+                              <Label htmlFor="notifications" className="cursor-pointer">Notifications</Label>
+                            </div>
+                            <Switch 
+                              id="notifications" 
+                              checked={notificationsEnabled}
+                              onCheckedChange={setNotificationsEnabled}
+                            />
+                          </div>
                           <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive" onClick={handleSignOut}>
                             <LogOut className="h-4 w-4 mr-2" />
                             Sign Out
