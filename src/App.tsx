@@ -14,7 +14,7 @@ import Auth from "./pages/Auth";
 import DoctorAuth from "./pages/DoctorAuth";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import HealthQuestionnaire from "./pages/HealthQuestionnaire";
-import VerificationSuccess from "./pages/VerificationSuccess";'
+import VerificationSuccess from "./pages/VerificationSuccess";
 import LearnMore from "./pages/LearnMore";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
