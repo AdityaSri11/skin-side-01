@@ -134,32 +134,32 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
         </DialogHeader>
 
         <div className="space-y-6">
-
-          {!matchResults && (
-            <div className="text-center py-8">
+          {/* Always show the run/re-run button */}
+          <div className="text-center py-4">
+            {!matchResults && (
               <p className="text-muted-foreground mb-6">
                 Click the button below to match your profile against available clinical trials
               </p>
-              <Button 
-                variant="hero" 
-                size="lg"
-                onClick={handleMatchTrials}
-                disabled={matching || !profileData}
-              >
-                {matching ? (
-                  <>
-                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Analyzing Trials...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-5 w-5 mr-2" />
-                    Start AI Matching
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
+            )}
+            <Button 
+              variant="hero" 
+              size="lg"
+              onClick={handleMatchTrials}
+              disabled={matching || !profileData}
+            >
+              {matching ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  Analyzing Trials...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-5 w-5 mr-2" />
+                  {matchResults ? 'Re-run AI Matching' : 'Start AI Matching'}
+                </>
+              )}
+            </Button>
+          </div>
 
           {matchResults && matchResults.matches && matchResults.matches.length > 0 && (
             <div className="space-y-4">
@@ -252,52 +252,14 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
                   </Card>
                 );
               })}
-
-              <div className="flex justify-center gap-4 pt-4">
-                <Button 
-                  variant="hero"
-                  onClick={handleMatchTrials}
-                  disabled={matching}
-                >
-                  {matching ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Re-run AI Matching
-                    </>
-                  )}
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    setMatchResults(null);
-                    onOpenChange(false);
-                  }}
-                >
-                  Close
-                </Button>
-              </div>
             </div>
           )}
 
           {matchResults && matchResults.matches && matchResults.matches.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground mb-6">
+            <div className="text-center py-4">
+              <p className="text-muted-foreground">
                 No suitable clinical trials were found based on your current profile.
               </p>
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  setMatchResults(null);
-                  onOpenChange(false);
-                }}
-              >
-                Close
-              </Button>
             </div>
           )}
         </div>
