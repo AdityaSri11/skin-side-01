@@ -22,8 +22,6 @@ interface AIMatchDialogProps {
 export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, onMatchSaved }: AIMatchDialogProps) => {
   const [matching, setMatching] = useState(false);
   const [matchResults, setMatchResults] = useState<any>(null);
-  const [canRematch, setCanRematch] = useState(true);
-  const [profileChanged, setProfileChanged] = useState(false);
   const { toast } = useToast();
 
   const trialNumbers = useMemo(() => {
@@ -35,17 +33,9 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
 
   useEffect(() => {
     if (savedMatches && profileData) {
-      const profileSnapshot = savedMatches.profile_snapshot;
-      const hasChanges = JSON.stringify(profileData) !== JSON.stringify(profileSnapshot);
-      setProfileChanged(hasChanges);
-      setCanRematch(hasChanges);
-      
       if (!matchResults) {
         setMatchResults(savedMatches.match_data);
       }
-    } else {
-      setCanRematch(true);
-      setProfileChanged(false);
     }
   }, [savedMatches, profileData, open]);
 
@@ -144,14 +134,6 @@ export const AIMatchDialog = ({ open, onOpenChange, profileData, savedMatches, o
         </DialogHeader>
 
         <div className="space-y-6">
-          {!canRematch && !profileChanged && (
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                You already have saved match results. Update your profile information to run AI matching again.
-              </AlertDescription>
-            </Alert>
-          )}
 
           {!matchResults && (
             <div className="text-center py-8">
