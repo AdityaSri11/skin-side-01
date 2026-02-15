@@ -161,6 +161,7 @@ const AppContent = () => {
         <main className="flex-1">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/learn-more" element={<LearnMore />} /> {/* Added by me */}
             <Route path="/questionnaire" element={<Questionnaire />} />
             <Route path="/results" element={<Results />} />
             <Route path="/trials" element={<AllTrials />} />
