@@ -341,28 +341,73 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                   <DialogTrigger asChild>
                     <Button variant="ghost" size="sm" className="w-full justify-start">
                       <Settings className="h-4 w-4 mr-2" />
-                      Privacy Settings
+                      Privacy Information
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px] bg-white">
+                  <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto bg-white">
                     <DialogHeader>
-                      <DialogTitle>Privacy Settings</DialogTitle>
-                      <DialogDescription>
-                        Manage how your health data is shared with clinical trial sponsors.
-                      </DialogDescription>
+                      <DialogTitle className="text-2xl font-bold">
+                        Privacy & How We Use Your Collected Medical Information
+                      </DialogTitle>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="share-data">Share data with researchers</Label>
-                        <Switch id="share-data" defaultChecked />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="anonymous-view">Anonymous profile viewing</Label>
-                        <Switch id="anonymous-view" />
-                      </div>
+                  
+                    <div className="space-y-6 py-4 text-sm text-foreground leading-relaxed">
+                      {/* Section 1 */}
+                      <section>
+                        <h3 className="text-lg font-semibold mb-2">How We Use Your Medical Information</h3>
+                        <p className="text-muted-foreground mb-3">
+                          We collect and process the medical information you provide so that we can:
+                        </p>
+                        <ul className="list-disc pl-5 space-y-2">
+                          <li><strong>Determine your eligibility</strong> for our clinical studies and monitor your participation safely</li>
+                          <li><strong>Provide appropriate healthcare or research services</strong> in line with study protocols</li>
+                          <li><strong>Comply with legal and regulatory obligations</strong>, including safety reporting, ethics committee requirements, and regulatory authority requirements</li>
+                          <li><strong>Analyse anonymised or pseudonymised health data</strong> to improve our services and support scientific research</li>
+                        </ul>
+                      </section>
+                  
+                      <Separator />
+                  
+                      {/* Section 2 */}
+                      <section>
+                        <h3 className="text-lg font-semibold mb-2">Legal Basis for Processing Medical Information</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Medical information is considered a <strong>special category of personal data</strong> under the GDPR. We only process it where a lawful basis applies and with appropriate safeguards in place:
+                        </p>
+                  
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="font-bold">1. Explicit Consent</h4>
+                            <p>We will obtain your <strong>explicit consent</strong> before collecting and using your medical information for clinical research, participation in studies, or related services. You may withdraw this consent at any time.</p>
+                          </div>
+                          <div>
+                            <h4 className="font-bold">2. Legal and Regulatory Obligations</h4>
+                            <p>We may process your medical information where it is necessary to comply with applicable laws, regulations, or regulatory authority requirements relating to clinical trials, health and safety, or public health.</p>
+                          </div>
+                          <div>
+                            <h4 className="font-bold">3. Scientific Research & Public Interest in Health</h4>
+                            <p>Where permitted under <strong>GDPR Article 9(2)</strong>, we may process your medical information for scientific or public health research purposes with appropriate safeguards, such as <strong>pseudonymisation or anonymisation</strong>.</p>
+                          </div>
+                        </div>
+                      </section>
+                  
+                      <Separator />
+                  
+                      {/* Section 3 */}
+                      <section>
+                        <h3 className="text-lg font-semibold mb-2">Data Security & Retention</h3>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li>Your medical information is processed securely.</li>
+                          <li>Access is restricted to authorised personnel only.</li>
+                          <li>Data is retained only as long as necessary for the stated purposes or as required by law.</li>
+                        </ul>
+                      </section>
                     </div>
-                    <div className="flex justify-end">
-                      <Button onClick={() => setIsPrivacyOpen(false)}>Save Preferences</Button>
+                  
+                    <div className="flex justify-end pt-4">
+                      <Button onClick={() => setIsPrivacyOpen(false)} className="w-full sm:w-auto">
+                        I Understand
+                      </Button>
                     </div>
                   </DialogContent>
                 </Dialog>
