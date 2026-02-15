@@ -344,7 +344,7 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                       Privacy Information
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto bg-white">
+                  <DialogContent className="sm:max-w-[800px] w-[95vw] max-h-[85vh] overflow-y-auto bg-white">
                     <DialogHeader>
                       <DialogTitle className="text-2xl font-bold">
                         Privacy & How We Use Your Collected Medical Information
