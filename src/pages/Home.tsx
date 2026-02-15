@@ -123,9 +123,11 @@ const Home = () => {
                   </Button>
                 </Link>
               )}
-              <Button variant="soft" size="lg" className="w-full sm:w-auto">
-                Learn More
-              </Button>
+              <Link to="/learn-more">
+                <Button variant="soft" size="lg" className="w-full sm:w-auto">
+                  Learn More
+                </Button>
+              </Link>
             </div>
           </div>
           
