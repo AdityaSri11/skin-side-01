@@ -159,9 +159,20 @@ const TrialDetail = () => {
             </div>
             
             <div className="lg:w-80">
-              <Button variant="hero" size="lg" className="w-full">
-                Apply for This Trial
-                <ArrowRight className="h-4 w-4 ml-2" />
+              <Button 
+                variant="hero" 
+                size="lg" 
+                className="w-full"
+                asChild
+              >
+                <a 
+                  href={trialLinks?.ctisUrl || trialLinks?.clinicalTrialsUrl || `https://clinicaltrials.gov/search?term=${id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  See Information
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </a>
               </Button>
             </div>
           </div>

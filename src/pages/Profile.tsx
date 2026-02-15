@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, Edit, Heart, MapPin, Users, MessageCircle, Settings, Bell, Bookmark, Calendar as CalendarIcon, LogOut, Save, X, Upload, FileText, Sparkles } from "lucide-react";
+import { ArrowLeft, Edit, Heart, MapPin, Users, MessageCircle, Settings, Bell, Bookmark, Calendar as CalendarIcon, LogOut, Save, X, Upload, FileText, Sparkles, Send, Mail } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from '@supabase/supabase-js';
@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
 import { useTrialLookup } from "@/hooks/useTrialLookup";
 import { Switch } from "@/components/ui/switch"; 
+import ContactUsForm from "@/components/ContactUsForm";
 
 interface ProfileProps {
   onAIMatchClick?: () => void;
@@ -338,10 +339,11 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
           {/* Main Content */}
           <div className="lg:col-span-3">
             <Tabs defaultValue="profile" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="profile">My Profile</TabsTrigger>
                 <TabsTrigger value="matches">AI Matches</TabsTrigger>
                 <TabsTrigger value="preferences">Preferences</TabsTrigger>
+                <TabsTrigger value="contact">Contact Us</TabsTrigger>
               </TabsList>
 
               {/* Profile Information Tab */}
@@ -771,6 +773,11 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                     </div>
                   </CardContent>
                 </Card> */}
+              </TabsContent>
+
+              {/* Contact Us Tab */}
+              <TabsContent value="contact">
+                <ContactUsForm userName={displayName} userEmail={displayEmail} />
               </TabsContent>
             </Tabs>
           </div>
