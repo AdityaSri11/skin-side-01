@@ -21,6 +21,15 @@ import { useTrialLookup } from "@/hooks/useTrialLookup";
 import { Switch } from "@/components/ui/switch"; 
 import ContactUsForm from "@/components/ContactUsForm";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
 interface ProfileProps {
   onAIMatchClick?: () => void;
   userRole?: string | null;
@@ -41,6 +50,7 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
   const { toast } = useToast();
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   const profileTrialNumbers = useMemo(() => {
     const matches = savedMatches?.match_data?.matches || [];
@@ -323,11 +333,40 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Chat with Support
                 </Button> */}
-                <Button variant="ghost" size="sm" className="w-full justify-start">
+                {/* <Button variant="ghost" size="sm" className="w-full justify-start">
                   <Settings className="h-4 w-4 mr-2" />
                   Privacy Settings
-                </Button>
-                {/* <Button variant="ghost" size="sm" className="w-full justify-start">
+                </Button> */}
+                <Dialog open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="w-full justify-start">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Privacy Settings
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px] bg-white">
+                    <DialogHeader>
+                      <DialogTitle>Privacy Settings</DialogTitle>
+                      <DialogDescription>
+                        Manage how your health data is shared with clinical trial sponsors.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="share-data">Share data with researchers</Label>
+                        <Switch id="share-data" defaultChecked />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="anonymous-view">Anonymous profile viewing</Label>
+                        <Switch id="anonymous-view" />
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <Button onClick={() => setIsPrivacyOpen(false)}>Save Preferences</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                  {/* <Button variant="ghost" size="sm" className="w-full justify-start">
                   <Bell className="h-4 w-4 mr-2" />
                   Notification Preferences
                 </Button> */}
@@ -720,7 +759,15 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                       <div>
                         <h4 className="font-medium text-foreground mb-3">Account Actions</h4>
                         <div className="space-y-3">
-                          <Button variant="outline" className="w-full justify-start">
+                          {/* <Button variant="outline" className="w-full justify-start">
+                            <Settings className="h-4 w-4 mr-2" />
+                            Privacy Settings
+                          </Button> */}
+                          <Button 
+                            variant="outline" 
+                            className="w-full justify-start"
+                            onClick={() => setIsPrivacyOpen(true)} // This triggers the Dialog above
+                          >
                             <Settings className="h-4 w-4 mr-2" />
                             Privacy Settings
                           </Button>
