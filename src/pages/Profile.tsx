@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, Edit, Heart, MapPin, Users, MessageCircle, Settings, Bell, Bookmark, Calendar as CalendarIcon, LogOut, Save, X, Upload, FileText, Sparkles, Send, Mail } from "lucide-react";
+import { ArrowLeft, Edit, Heart, MapPin, Users, MessageCircle, Settings, Info, Bell, Bookmark, Calendar as CalendarIcon, LogOut, Save, X, Upload, FileText, Sparkles, Send, Mail } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from '@supabase/supabase-js';
@@ -340,7 +340,7 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                 <Dialog open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen}>
                   <DialogTrigger asChild>
                     <Button variant="ghost" size="sm" className="w-full justify-start">
-                      <Settings className="h-4 w-4 mr-2" />
+                      <Info className="h-4 w-4 mr-2" />
                       Privacy Information
                     </Button>
                   </DialogTrigger>
@@ -813,8 +813,8 @@ const Profile = ({ onAIMatchClick, userRole, savedMatches: propSavedMatches, onM
                             className="w-full justify-start"
                             onClick={() => setIsPrivacyOpen(true)} // This triggers the Dialog above
                           >
-                            <Settings className="h-4 w-4 mr-2" />
-                            Privacy Settings
+                            <Info className="h-4 w-4 mr-2" />
+                            Privacy Information
                           </Button>
                           {/* <Button variant="outline" className="w-full justify-start">
                             <Bell className="h-4 w-4 mr-2" />
